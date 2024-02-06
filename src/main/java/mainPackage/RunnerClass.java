@@ -11,7 +11,6 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.sl.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -31,12 +30,12 @@ public class RunnerClass {
     private static HSSFWorkbook workbook;
     private static HSSFSheet sheet; // Corrected to HSSFSheet
     private static int rowNum = 0;
-    
+
     public static void main(String[] args) {
         initializeBrowser();
         if (signIn()) {
             navigateToBuildingForAllCompanies();
-            saveExcelFile(AppConfig.excelFileLocation);
+            createAndSaveExcelFile(AppConfig.excelFileLocation);
         } else {
             System.out.println("Sign-in failed");
         }
@@ -144,12 +143,38 @@ public class RunnerClass {
         }
     }
 
-    public static void saveExcelFile(String fileName) {
-        try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
-            workbook.write(outputStream);
-            System.out.println("Excel file saved successfully.");
-        } catch (IOException e) {
-            System.out.println("Error saving Excel file: " + e.getMessage());
+    public static void createAndSaveExcelFile(String fileName) {
+        try {
+            // Create a new workbook
+            HSSFWorkbook workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("Company Data");
+
+            // Add header row
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("Company");
+            headerRow.createCell(1).setCellValue("Falls Within");
+            headerRow.createCell(2).setCellValue("Cash or Accrual Accounting Basis");
+
+            // Iterate through companies and populate data
+            int rowNum = 1; // Start from the second row after header
+            for (String company : AppConfig.companies) {
+                if (navigateToBuilding(company)) {
+                    System.out.println("Navigation successful for company: " + company);
+                    rowNum++; // Move to the next row for the next company
+                } else {
+                    System.out.println("Navigation failed for company: " + company);
+                }
+            }
+
+            // Save the workbook to the specified file
+            try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
+                workbook.write(outputStream);
+                System.out.println("Excel file saved successfully.");
+            } catch (IOException e) {
+                System.out.println("Error saving Excel file: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            System.out.println("Error creating Excel file: " + e.getMessage());
         }
     }
 }
