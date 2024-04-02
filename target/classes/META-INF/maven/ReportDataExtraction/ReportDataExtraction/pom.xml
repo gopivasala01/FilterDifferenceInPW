@@ -13,6 +13,12 @@
             <version>5.6.4</version>
         </dependency>
         <dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient</artifactId>
+    <version>4.5.13</version> <!-- or the latest version available -->
+</dependency>
+
+        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>4.11.0</version>
@@ -47,6 +53,12 @@
             <artifactId>guava</artifactId>
             <version>31.1-jre</version>
         </dependency>
+        <dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20211205</version> <!-- Replace with the latest version -->
+</dependency>
+
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>

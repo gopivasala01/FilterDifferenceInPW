@@ -51,8 +51,32 @@ public class RunnerClass {
 
 	        try {
 	            initializeBrowser();
-	            if (signIn()) {
-	                fetchDataFromDatabaseAndNavigate();
+	            if (signIn()==true) {
+	            	try {
+		                fetchDataFromDatabaseAndNavigate();
+	            	}
+	            	catch (Exception e) {
+	            		 e.printStackTrace();
+	     	            System.out.println("Error occurred While fetching Data: " + e.getMessage());
+	            	}
+	            	try {
+		                SampleText.differenceInFilters();
+	            	}
+	            	catch (Exception e) {
+	            		 e.printStackTrace();
+	     	            System.out.println("Difference in filters fetching: " + e.getMessage());
+	            	}
+	            	try {
+	            		if(!SampleText.output.toString().isEmpty()) {
+	            			SampleText.sendEmail(SampleText.output);
+		            		OpenJira.jiraTicketCreation(SampleText.output);
+	            		}
+	            		
+	            	}
+	            	catch (Exception e) {
+	            		 e.printStackTrace();
+	     	            System.out.println("Error Sending Email/Jira Creation: " + e.getMessage());
+	            	}
 	            }
 	        } catch (Exception e) {
 	            e.printStackTrace();
@@ -103,23 +127,26 @@ public class RunnerClass {
     public static void fetchDataFromDatabaseAndNavigate() throws IOException {
         try {
             conn = DriverManager.getConnection(CONNECTION_URL);
-            String sqlSelect = "	SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW ,PreviousFilterValueInPW\r\n"
+            String sqlSelect = /*"	SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW ,PreviousFilterValueInPW\r\n"
             		+ "	FROM Staging.Reportprocess \r\n"
             		+ "	WHERE IsActive = 1 \r\n"
             		+ "	  AND (FilterValidationThroughAutomation = 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
-            		+ "	AND ReportAliasName = '*Bulk - Prospects'\r\n"
+            		
             		+ "\r\n"
-            		+ "	ORDER BY ReportAliasName, CompanyName;";
+            		+ "	ORDER BY ReportAliasName, CompanyName;";*/
 
             		
             		
-            		/*"SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+            		"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
             		+ "	FROM Staging.Reportprocess \r\n"
             		+ "	WHERE IsActive = 1 \r\n"
             		+ "	  AND (FilterValidationThroughAutomation <> 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
             		+ "	AND ReportAliasName <>'*Incremental - General Ledger (Last Month)' AND ReportAliasName <> '*Incremental - General Ledger (Current Month)'\r\n"
             		+ "	ORDER BY ReportAliasName, CompanyName;\r\n"
             		+ "";
+            		
+            	
+            		
             		/*"	SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
             		+ "	FROM Staging.Reportprocess \r\n"
             		+ "	WHERE IsActive = 1 \r\n"
