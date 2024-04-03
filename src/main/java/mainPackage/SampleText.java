@@ -105,15 +105,15 @@ public class SampleText {
         // Email configuration
         String smtpHost = "smtp.office365.com";
         String smtpPort = "587";
-        String emailFrom = "santosh.p@beetlerim.com";
-        String emailTo = "santosh.p@beetlerim.com,gopi.v@beetlerim.com";
-        //String emailTo = "santosh.p@beetlerim.com , gopi.v@beetlerim.com , ratna@beetlerim.com , dahoffman@homeriver.com ";
+        String emailFrom = "gopi.v@beetlerim.com";
+        String emailTo = "gopi.v@beetlerim.com,naveen.p@beetlerim.com";
+        //String emailTo = "naveen.p@beetlerim.com, gopi.v@beetlerim.com , ratna@beetlerim.com , dahoffman@homeriver.com ";
         String emailSubject = "Different Value Detected";
         String emailBody = output2.toString();
 
         // SMTP authentication information
-        final String username = "santosh.p@beetlerim.com";
-        final String password = "Welcome@123";
+        final String username = "gopi.v@beetlerim.com";
+        final String password = "Gopi@123";
 
         // Set properties
         Properties props = new Properties();
