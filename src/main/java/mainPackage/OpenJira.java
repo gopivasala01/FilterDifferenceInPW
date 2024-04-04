@@ -1,5 +1,6 @@
 package mainPackage;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -12,30 +13,52 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class OpenJira {
     public static void jiraTicketCreation(StringBuilder description) {
         // Jira credentials
         String username = "gopi.v@beetlerim.com";
-        String apiToken = "ATATT3xFfGF0gtwtIMi9mWsxcHcIH3M8TzGieQ-gunU91Zmm9fYfJ8ZlGedfBn76w0d-104dziWiTzH-91Gy4ozqbrn9J1QFU7waas0Atc4uFoAqVLP4jSRE_9Dpy3dCuH7JCwBryQ-5RDrq-iMLzYXvqhEiHXBG72Nx_AGreH8ijyqPBIZB_6o=83E77EC0";
+        String apiToken = "ATATT3xFfGF04x1ZpYRBAW9aAqWewrWQPSrWsYIGYCEnTKdPec0AbZbewgGVTStF6hjkk6xkS5015LZ7ZcGF5ZdeVS6oxWUGTNyQr9raMfTMswTgjurHDHLzb68idXKFwRf-3CesvDt-Ir0Hq2rHMNuy43Eu4mb9kLNaZoiCmj50bFdednURDYQ=CD7BF22C";
+        String dynamicDescription = StringEscapeUtils.escapeJson(description.toString());
         
+     // Get the current date
+        LocalDate currentDate = LocalDate.now();
+
+        // Add 7 days to the current date
+        LocalDate futureDate = currentDate.plusDays(7);
+
+        // Print the current date and future date
+        System.out.println("Current Date: " + currentDate);
+        System.out.println("Future Date (+7 days): " + futureDate);
         // Jira REST API endpoint for creating an issue
         String jiraUrl = "https://hrgitdepartment.atlassian.net/rest/api/2/issue";
         
      // Specify the board ID where you want to create the issue
         String boardId = "10002";
         
+    
+        // Format dates as strings
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String startDateString = currentDate.format(formatter);
+        String dueDateString = futureDate.format(formatter);
+
+        // Construct the JSON payload with start date, due date, and other fields
         String jsonPayload = "{"
                 + "\"fields\": {"
                 + "\"project\": {\"id\": \"" + boardId + "\"},"
                 + "\"summary\": \"PropertyWare Reports Filter Differences\","
-                + "\"description\": \"" + description.toString() + "\","
+                + "\"description\": \"" + dynamicDescription + "\","
                 + "\"issuetype\": {\"name\": \"Task\"},"
                 + "\"customfield_10042\": {\"value\": \"2 - High\"}," // Set the priority to High, change as needed
-                + "\"assignee\": {\"name\": \"Ratna\"}" // Set the assignee username
+                + "\"assignee\": {\"id\": \"712020:0fbaf53d-16f6-457b-b81d-62313bf580c7\"}," // Set the assignee username
+                + "\"customfield_10015\": \"" + startDateString + "\","
+                + "\"duedate\": \"" + dueDateString + "\","
+                + "\"customfield_10038\": \"" + dueDateString + "\""
                 + "}"
                 + "}";
-
+ 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
         	 //HttpGet httpGet = new HttpGet(jiraUrl);
             HttpPost httpPost = new HttpPost(jiraUrl);
