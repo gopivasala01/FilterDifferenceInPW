@@ -14,7 +14,7 @@ public class SampleText {
     private static final String CONNECTION_URL = "jdbc:sqlserver://azrsrv001.database.windows.net;databaseName=HomeRiverDB;user=service_sql02;password=xzqcoK7T;encrypt=true;trustServerCertificate=true;";
     public static StringBuilder output = new StringBuilder();
 
-    public static void differenceInFilters() {
+    public static boolean differenceInFilters() {
         Connection connection = null;
         CallableStatement callableStatement = null;
         ResultSet resultSet = null;
@@ -72,6 +72,7 @@ public class SampleText {
            
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         } finally {
             // Close connections and resources
             try {
@@ -82,6 +83,7 @@ public class SampleText {
                 e.printStackTrace();
             }
         }
+		return true;
     }
 
     private static String findDifference(String variable1Where, String variable2Where) {

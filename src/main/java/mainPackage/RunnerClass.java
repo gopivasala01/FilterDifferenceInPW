@@ -42,7 +42,9 @@ public class RunnerClass {
 	    static Statement stmt;
 	    static ResultSet rs;
 	    static final String CONNECTION_URL = "jdbc:sqlserver://azrsrv001.database.windows.net;databaseName=HomeRiverDB;user=service_sql02;password=xzqcoK7T;encrypt=true;trustServerCertificate=true;";
-
+	    static StringBuilder stringBuilder = new StringBuilder();
+	    
+	    
 	    String 	text1 = "";
 	    public static void main(String[] args) {
 	        try {
@@ -53,34 +55,59 @@ public class RunnerClass {
 	            initializeBrowser();
 	            if (signIn()==true) {
 	            	try {
-		                fetchDataFromDatabaseAndNavigate();
+		               if( fetchDataFromDatabaseAndNavigate() == true) {
+		            	   try {
+		            		   if(SampleText.differenceInFilters()==true) {
+		            			   try {
+		       	            		if(!SampleText.output.toString().isEmpty()) {
+		       	            			SampleText.sendEmail(SampleText.output);
+		       		            		OpenJira.jiraTicketCreation(SampleText.output);
+		       	            		}
+		       	            		else {
+		       	            			stringBuilder.append("No differences in the filters");
+					            		SampleText.sendEmail(stringBuilder);
+		       	            			
+		       	            		}
+		       	            		
+		       	            	}
+		       	            	catch (Exception e) {
+		       	            		 e.printStackTrace();
+		       	     	            System.out.println("Error Sending Email/Jira Creation: " + e.getMessage());
+		       	            	}
+		            		   }
+		            		   else {
+		            			   stringBuilder.append("Unable to get the differences in the filters");
+				            		SampleText.sendEmail(stringBuilder);
+		            		   }
+		            	   }
+		            	   catch (Exception e) {
+		            		   stringBuilder.append("Unable to get the differences in the filters");
+			            		SampleText.sendEmail(stringBuilder);
+			            		 e.printStackTrace();
+			     	            System.out.println("Difference in filters fetching: " + e.getMessage());
+			            	}
+		               }
+		               else {
+		            		stringBuilder.append("Error while fetching data");
+		            		SampleText.sendEmail(stringBuilder);
+		               }
 	            	}
 	            	catch (Exception e) {
+	            		stringBuilder.append("Error while fetching data");
+	            		SampleText.sendEmail(stringBuilder);
 	            		 e.printStackTrace();
 	     	            System.out.println("Error occurred While fetching Data: " + e.getMessage());
 	            	}
-	            	try {
-		                SampleText.differenceInFilters();
-	            	}
-	            	catch (Exception e) {
-	            		 e.printStackTrace();
-	     	            System.out.println("Difference in filters fetching: " + e.getMessage());
-	            	}
-	            	try {
-	            		if(!SampleText.output.toString().isEmpty()) {
-	            			SampleText.sendEmail(SampleText.output);
-		            		OpenJira.jiraTicketCreation(SampleText.output);
-	            		}
-	            		
-	            	}
-	            	catch (Exception e) {
-	            		 e.printStackTrace();
-	     	            System.out.println("Error Sending Email/Jira Creation: " + e.getMessage());
-	            	}
+	            
+	            	
+	            	
 	            }
 	        } catch (Exception e) {
 	            e.printStackTrace();
 	            System.out.println("An error occurred: " + e.getMessage());
+	        }
+	        finally {
+	        	driver.quit();
 	        }
 	    }
 
@@ -124,7 +151,7 @@ public class RunnerClass {
         }
     }
 
-    public static void fetchDataFromDatabaseAndNavigate() throws IOException {
+    public static boolean fetchDataFromDatabaseAndNavigate() throws IOException {
         try {
             conn = DriverManager.getConnection(CONNECTION_URL);
             String sqlSelect = /*"	SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW ,PreviousFilterValueInPW\r\n"
@@ -186,7 +213,9 @@ public class RunnerClass {
                 System.out.println("Final URL with extracted number: " + finalURL);
 
                 try {
-                    navigateToURL(finalURL, companyName, reportName, reportAliasName, reportURL, reportID);
+                   if( navigateToURL(finalURL, companyName, reportName, reportAliasName, reportURL, reportID)==true) {
+                	   return true;
+                   }
                 } catch (Exception e) {
                     e.printStackTrace();
                     continue;
@@ -196,6 +225,7 @@ public class RunnerClass {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         } finally {
             try {
                 if (rs != null) {
@@ -209,11 +239,13 @@ public class RunnerClass {
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
+                
             }
         }
+		return true;
     }
 
-    public static void navigateToURL(String finalURL, String companyName, String reportName, String reportAliasName, String reportURL, String reportID) throws InterruptedException {
+    public static boolean navigateToURL(String finalURL, String companyName, String reportName, String reportAliasName, String reportURL, String reportID) throws InterruptedException {
         try {
             driver.get(AppConfig.homeURL);
             switch (companyName) {
@@ -246,6 +278,7 @@ public class RunnerClass {
                     marketDropdownList.selectByVisibleText(marketName);
                 } catch (Exception e1) {
                     e1.printStackTrace();
+                    return false;
                 }
             }; 
 
@@ -262,7 +295,12 @@ public class RunnerClass {
             driver.findElement(By.xpath("//button[text()='Filters']")).click();
             
             Thread.sleep(5000);
-            extractTextAndInputValuesFromPopup(driver, reportID);
+           if( extractTextAndInputValuesFromPopup(driver, reportID)==true) {
+        	   return true;
+           }
+           else {
+        	   return false;
+           }
          
         } catch (Exception e) {
         	String dropdownText1 = "Failed to load the page";
@@ -302,8 +340,9 @@ public class RunnerClass {
             	
             }
         }
+		return true;
     }
-    public static void extractTextAndInputValuesFromPopup(WebDriver driver, String reportID) {
+    public static boolean extractTextAndInputValuesFromPopup(WebDriver driver, String reportID) {
         JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
         try {
             Thread.sleep(3000);
@@ -367,10 +406,13 @@ public class RunnerClass {
                 updateDatabase(reportID, extractedValues.toString());
             } else {
                 System.out.println("Error: Script did not return a list of WebElements.");
+                return false;
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
+		return true;
     }
 
 

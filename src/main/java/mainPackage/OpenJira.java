@@ -3,16 +3,18 @@ package mainPackage;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -20,7 +22,7 @@ public class OpenJira {
     public static void jiraTicketCreation(StringBuilder description) {
         // Jira credentials
         String username = "gopi.v@beetlerim.com";
-        String apiToken = "ATATT3xFfGF04x1ZpYRBAW9aAqWewrWQPSrWsYIGYCEnTKdPec0AbZbewgGVTStF6hjkk6xkS5015LZ7ZcGF5ZdeVS6oxWUGTNyQr9raMfTMswTgjurHDHLzb68idXKFwRf-3CesvDt-Ir0Hq2rHMNuy43Eu4mb9kLNaZoiCmj50bFdednURDYQ=CD7BF22C";
+        String apiToken = getApiToken();
         String dynamicDescription = StringEscapeUtils.escapeJson(description.toString());
         
      // Get the current date
@@ -89,4 +91,34 @@ public class OpenJira {
         String credentials = username + ":" + apiToken;
         return java.util.Base64.getEncoder().encodeToString(credentials.getBytes());
     }
+    
+    
+	public static String getApiToken()
+	{
+		try
+		{
+		        Connection con = null;
+		        Statement stmt = null;
+		        ResultSet rs = null;
+		            //Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+		        	String connectionUrl = "jdbc:sqlserver://azrsrv001.database.windows.net;databaseName=HomeRiverDB;user=service_sql02;password=xzqcoK7T;encrypt=true;trustServerCertificate=true;";
+		            con = DriverManager.getConnection(connectionUrl);
+		            String queryToGetApiToken = "Select Token from Staging.JiraAPIToken where Id='1'";
+		            stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+		            stmt.setQueryTimeout(100);
+		           // stmt = con.createStatement();
+		            rs = stmt.executeQuery(queryToGetApiToken);
+		            if(rs.next())
+		            {
+		            String 	APIToken = rs.getObject(1).toString();
+		            return APIToken;
+		            }
+		            else return "Error";
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return "Error";
+		}
+	}
 }
