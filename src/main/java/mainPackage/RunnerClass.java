@@ -214,7 +214,7 @@ public class RunnerClass {
 
                 try {
                    if( navigateToURL(finalURL, companyName, reportName, reportAliasName, reportURL, reportID)==true) {
-                	   return true;
+                	   continue;
                    }
                 } catch (Exception e) {
                     e.printStackTrace();

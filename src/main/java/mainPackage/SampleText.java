@@ -2,6 +2,8 @@ package mainPackage;
 
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -104,13 +106,17 @@ public class SampleText {
     }
 
     public static void sendEmail(StringBuilder output2) {
+    	
+    	 LocalDate currentDate = LocalDate.now();
+    	  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/DD/YYYY");
+          String startDateString = currentDate.format(formatter);
         // Email configuration
         String smtpHost = "smtp.office365.com";
         String smtpPort = "587";
         String emailFrom = "gopi.v@beetlerim.com";
-        String emailTo = "gopi.v@beetlerim.com,naveen.p@beetlerim.com";
-        //String emailTo = "naveen.p@beetlerim.com, gopi.v@beetlerim.com , ratna@beetlerim.com , dahoffman@homeriver.com ";
-        String emailSubject = "Different Value Detected";
+       // String emailTo = "gopi.v@beetlerim.com,naveen.p@beetlerim.com";
+        String emailTo = "naveen.p@beetlerim.com, gopi.v@beetlerim.com , ratna@beetlerim.com , dahoffman@homeriver.com ";
+        String emailSubject = "PropertyWare Report Filter Validation - "+startDateString;
         String emailBody = output2.toString();
 
         // SMTP authentication information
