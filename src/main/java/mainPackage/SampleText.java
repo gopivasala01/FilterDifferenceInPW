@@ -154,7 +154,8 @@ public class SampleText {
             // Close the session
             if (session != null) {
                 try {
-                    session.getTransport().close();
+                	Transport transport = session.getTransport("smtp");
+                	transport.close();
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }
