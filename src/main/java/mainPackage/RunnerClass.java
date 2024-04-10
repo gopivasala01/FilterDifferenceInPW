@@ -1,25 +1,19 @@
 package mainPackage;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
@@ -31,9 +25,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.netty.handler.timeout.TimeoutException;
 
 public class RunnerClass {
 	 static WebDriver driver;
@@ -50,43 +42,76 @@ public class RunnerClass {
 	        try {
 	            FileUtils.cleanDirectory(new File("C:\\SantoshMurthyP\\Lease Audit Automation\\ReportExcel\\reports.xlsx"));
 	        } catch (Exception e) {}
-
+	        
+	        //----------------------- Update Last week Filter values to column PreviousFilterValueInPW---------------
+	      String updatePreviousFilter = "UPDATE Staging.ReportProcess SET PreviousFilterValueInPw = FilterValueInPw";
+	      updateTable(updatePreviousFilter);
+	       
+	       //----------------------Null the column FilterValueInPW for current run----------------------------------
+	       String updateFilterValueInPW = "UPDATE Staging.ReportProcess SET FilterValueInPw = NULL";
+	       updateTable(updateFilterValueInPW);
+	        
+	        
 	        try {
 	            initializeBrowser();
 	            if (signIn()==true) {
+	            	
 	            	try {
-		               if( fetchDataFromDatabaseAndNavigate() == true) {
-		            	   try {
-		            		   if(SampleText.differenceInFilters()==true) {
-		            			   try {
-		       	            		if(!SampleText.output.toString().isEmpty()) {
-		       	            			SampleText.sendEmail(SampleText.output);
-		       		            		OpenJira.jiraTicketCreation(SampleText.output);
-		       	            		}
-		       	            		else {
-		       	            			stringBuilder.append("No differences in the filters");
-					            		SampleText.sendEmail(stringBuilder);
-		       	            			
-		       	            		}
-		       	            		
-		       	            	}
-		       	            	catch (Exception e) {
-		       	            		 e.printStackTrace();
-		       	     	            System.out.println("Error Sending Email/Jira Creation: " + e.getMessage());
-		       	            	}
-		            		   }
-		            		   else {
-		            			   stringBuilder.append("Unable to get the differences in the filters");
-				            		SampleText.sendEmail(stringBuilder);
-		            		   }
+	            		 String sqlSelect = 
+	                     		
+	            	            	//	"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW FROM Staging.Reportprocess	 where	ReportAliasName ='*Bulk - Portfolios'";
+
+	            	            		
+	            	            		
+	            	            		"SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+	            	            		+ "	FROM Staging.Reportprocess \r\n"
+	            	            		+ "	WHERE IsActive = 1 \r\n"
+	            	            		+ "	  AND (FilterValidationThroughAutomation <> 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
+	            	            		+ "	AND ReportAliasName <>'*Incremental - General Ledger (Last Month)' AND ReportAliasName <> '*Incremental - General Ledger (Current Month)'\r\n"
+	            	            		+ "	ORDER BY ReportAliasName, CompanyName;\r\n"
+	            	            		+ "";
+		               if( fetchDataFromDatabaseAndNavigate(sqlSelect) == true) {
+		            	   String query = "SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+		            	   		+ "            		FROM Staging.Reportprocess WHERE IsActive = 1 and FilterValueInPW = 'Failed to load the page'\r\n"
+		            	   		+ "            		ORDER BY ReportAliasName, CompanyName";
+		            	   int i=0;
+		            	   while(i<3) {
+		            		   fetchDataFromDatabaseAndNavigate(query) ; 
+		            		   i++;
 		            	   }
-		            	   catch (Exception e) {
-		            		   stringBuilder.append("Unable to get the differences in the filters");
-			            		SampleText.sendEmail(stringBuilder);
-			            		 e.printStackTrace();
-			     	            System.out.println("Difference in filters fetching: " + e.getMessage());
-			            	}
-		               }
+		            		   try {
+			            		   if(SampleText.differenceInFilters()==true) {
+			            			   try {
+			       	            		if(!SampleText.output.toString().isEmpty()) {
+			       	            			SampleText.sendEmail(SampleText.output);
+			       		            		OpenJira.jiraTicketCreation(SampleText.output);
+			       	            		}
+			       	            		else {
+			       	            			stringBuilder.append("No differences in the filters");
+						            		SampleText.sendEmail(stringBuilder);
+			       	            			
+			       	            		}
+			       	            		
+			       	            	}
+			       	            	catch (Exception e) {
+			       	            		 e.printStackTrace();
+			       	     	            System.out.println("Error Sending Email/Jira Creation: " + e.getMessage());
+			       	            	}
+			            		   }
+			            		   else {
+			            			   stringBuilder.append("Unable to get the differences in the filters");
+					            		SampleText.sendEmail(stringBuilder);
+			            		   }
+			            	   }
+			            	   catch (Exception e) {
+			            		   stringBuilder.append("Unable to get the differences in the filters");
+				            		SampleText.sendEmail(stringBuilder);
+				            		 e.printStackTrace();
+				     	            System.out.println("Difference in filters fetching: " + e.getMessage());
+				            	}
+			               }
+		               
+	            	
 		               else {
 		            		stringBuilder.append("Error while fetching data");
 		            		SampleText.sendEmail(stringBuilder);
@@ -109,6 +134,10 @@ public class RunnerClass {
 	        finally {
 	        	driver.quit();
 	        }
+	       
+           
+	       
+	        
 	    }
 
     public static void initializeBrowser() {
@@ -151,28 +180,10 @@ public class RunnerClass {
         }
     }
 
-    public static boolean fetchDataFromDatabaseAndNavigate() throws IOException {
+    public static boolean fetchDataFromDatabaseAndNavigate(String sqlSelect) throws IOException {
         try {
             conn = DriverManager.getConnection(CONNECTION_URL);
-            String sqlSelect = /*"	SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW ,PreviousFilterValueInPW\r\n"
-            		+ "	FROM Staging.Reportprocess \r\n"
-            		+ "	WHERE IsActive = 1 \r\n"
-            		+ "	  AND (FilterValidationThroughAutomation = 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
-            		
-            		+ "\r\n"
-            		+ "	ORDER BY ReportAliasName, CompanyName;";*/
-            		
-            	//	"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW FROM Staging.Reportprocess	 where	ReportAliasName ='*Bulk - Portfolios'";
-
-            		
-            		
-            		"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
-            		+ "	FROM Staging.Reportprocess \r\n"
-            		+ "	WHERE IsActive = 1 \r\n"
-            		+ "	  AND (FilterValidationThroughAutomation <> 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
-            		+ "	AND ReportAliasName <>'*Incremental - General Ledger (Last Month)' AND ReportAliasName <> '*Incremental - General Ledger (Current Month)'\r\n"
-            		+ "	ORDER BY ReportAliasName, CompanyName;\r\n"
-            		+ "";
+           
             		
             
             		
@@ -456,6 +467,21 @@ public class RunnerClass {
         return null;
     }
 
+    
+    public static void updateTable(String query)
+	 {
+		    try (Connection conn = DriverManager.getConnection(CONNECTION_URL);
+		        Statement stmt = conn.createStatement();) 
+		    {
+		      stmt.executeUpdate(query);
+		     System.out.println("Record Updated");
+		      stmt.close();
+	            conn.close();
+		    } catch (SQLException e) 
+		    {
+		      e.printStackTrace();
+		    }
+	 }
    
 	public static void intermittentPopUp(WebDriver driver)
 	{
