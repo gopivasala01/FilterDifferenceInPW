@@ -162,11 +162,11 @@ public class RunnerClass {
             		+ "\r\n"
             		+ "	ORDER BY ReportAliasName, CompanyName;";*/
             		
-            		"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW FROM Staging.Reportprocess	 where	ReportAliasName ='*Bulk - Portfolios'";
+            	//	"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW FROM Staging.Reportprocess	 where	ReportAliasName ='*Bulk - Portfolios'";
 
             		
             		
-           /* 		"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+            		"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
             		+ "	FROM Staging.Reportprocess \r\n"
             		+ "	WHERE IsActive = 1 \r\n"
             		+ "	  AND (FilterValidationThroughAutomation <> 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
@@ -174,7 +174,7 @@ public class RunnerClass {
             		+ "	ORDER BY ReportAliasName, CompanyName;\r\n"
             		+ "";
             		
-            */	
+            
             		
             		/*"	SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
             		+ "	FROM Staging.Reportprocess \r\n"
