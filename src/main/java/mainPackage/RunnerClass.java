@@ -90,7 +90,7 @@ public class RunnerClass {
 		               else {
 		            		stringBuilder.append("Error while fetching data");
 		            		SampleText.sendEmail(stringBuilder);
-		               }
+		               } 
 	            	}
 	            	catch (Exception e) {
 	            		stringBuilder.append("Error while fetching data");
@@ -161,10 +161,12 @@ public class RunnerClass {
             		
             		+ "\r\n"
             		+ "	ORDER BY ReportAliasName, CompanyName;";*/
+            		
+            		"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW FROM Staging.Reportprocess	 where	ReportAliasName ='*Bulk - Portfolios'";
 
             		
             		
-            		"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+           /* 		"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
             		+ "	FROM Staging.Reportprocess \r\n"
             		+ "	WHERE IsActive = 1 \r\n"
             		+ "	  AND (FilterValidationThroughAutomation <> 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
@@ -172,7 +174,7 @@ public class RunnerClass {
             		+ "	ORDER BY ReportAliasName, CompanyName;\r\n"
             		+ "";
             		
-            	
+            */	
             		
             		/*"	SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
             		+ "	FROM Staging.Reportprocess \r\n"
@@ -257,7 +259,7 @@ public class RunnerClass {
                     break;
                 case "Chicago PFW":
                     companyName = "Chicago pfw";
-                    break;
+                     break;
                 case "Hawaii Kona":
                     companyName = "Kona (Legacy Hawaiian Dream)";
                     break;
@@ -266,6 +268,20 @@ public class RunnerClass {
             }
 
             try {
+            	
+            	try {
+					String expiredURL = RunnerClass.driver.getCurrentUrl();
+					if(expiredURL.contains("https://app.propertyware.com/pw/expired.jsp") || expiredURL.equalsIgnoreCase("https://app.propertyware.com/pw/expired.jsp?cookie") || expiredURL.contains(AppConfig.URL) || expiredURL.contains("https://app.propertyware.com/pw/login.jsp?unauthorized=true")) {
+						
+						RunnerClass.driver.navigate().to(AppConfig.URL);
+						RunnerClass.driver.findElement(Locators.userName).sendKeys(AppConfig.username); 
+					    RunnerClass.driver.findElement(Locators.password).sendKeys(AppConfig.password);
+					    Thread.sleep(2000);
+					    RunnerClass.driver.findElement(Locators.signMeIn).click();
+					    Thread.sleep(3000);
+					}
+				}
+				catch(Exception e) {}
                 driver.findElement(Locators.marketDropdown).click();
                 String marketName = "HomeRiver Group - " + companyName;
                 Select marketDropdownList = new Select(driver.findElement(Locators.marketDropdown));
@@ -403,7 +419,7 @@ public class RunnerClass {
 
                 System.out.println("Final Extracted Values:");
                 System.out.println(extractedValues.toString());
-                updateDatabase(reportID, extractedValues.toString());
+                updateDatabase(reportID, extractedValues.toString().trim());
             } else {
                 System.out.println("Error: Script did not return a list of WebElements.");
                 return false;
