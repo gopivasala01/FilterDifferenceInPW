@@ -72,7 +72,7 @@ public class RunnerClass {
 	            	            		+ "";
 		               if( fetchDataFromDatabaseAndNavigate(sqlSelect) == true) {
 		            	   String query = "SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
-		            	   		+ "            		FROM Staging.Reportprocess WHERE IsActive = 1 and FilterValueInPW = 'Failed to load the page'\r\n"
+		            	   		+ "            		FROM Staging.Reportprocess WHERE IsActive = 1  and (FilterValueInPW = 'Failed to load the page' or FilterValueInPW is Null)\r\n"
 		            	   		+ "            		ORDER BY ReportAliasName, CompanyName";
 		            	   int i=0;
 		            	   while(i<3) {
