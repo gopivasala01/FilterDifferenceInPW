@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite parallel="tests" name="DataProviderSuite" data-provider-thread-count="5">
+  <test name="DataProviderTest">
+    <classes>
+      <class name="mainPackage.RunnerClass2"/>
+    </classes>
+  </test > <!-- DataProviderTest -->
+</suite> <!-- DataProviderSuite -->

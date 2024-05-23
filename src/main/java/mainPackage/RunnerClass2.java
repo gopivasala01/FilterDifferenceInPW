@@ -1,20 +1,5 @@
 package mainPackage;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.PageLoadStrategy;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -25,171 +10,286 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.mail.AuthenticationFailedException;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.PageLoadStrategy;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
+
 public class RunnerClass2 {
 	
+    public static String[][] pendingLeases;
+	public static WebDriverWait wait;
+	public static boolean loggedOut = false;
+    
 
-	static WebDriver driver;
-    static Actions actions;
-    static Connection conn;
-    static Statement stmt;
-    static ResultSet rs;
-    static final String CONNECTION_URL = "jdbc:sqlserver://azrsrv001.database.windows.net;databaseName=HomeRiverDB;user=service_sql02;password=xzqcoK7T;encrypt=true;trustServerCertificate=true;";
+    // Use ThreadLocal to store a separate ChromeDriver instance for each thread
+    private static ThreadLocal<ChromeDriver> driverThreadLocal = new ThreadLocal<ChromeDriver>();
+    private static ThreadLocal<String> failedReasonThreadLocal = new ThreadLocal<>();
+    
+    
 
-    public static void main(String[] args) {
-        try {
-            FileUtils.cleanDirectory(new File("C:\\SantoshMurthyP\\Lease Audit Automation\\ReportExcel\\reports.xlsx"));
-        } catch (Exception e) {}
+ 
 
-        try {
-            initializeBrowser();
-            if (signIn()) {
-                fetchDataFromDatabaseAndNavigate();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("An error occurred: " + e.getMessage());
-        }
+    @BeforeMethod
+    public boolean setUp(){
+        // Set up WebDriverManager to automatically download and set up ChromeDriver
+    	//System.setProperty("webdriver.http.factory", "jdk-http-client");
+    	try {
+    			WebDriverManager.chromedriver().clearDriverCache().setup();
+    		 	//WebDriverManager.chromedriver().setup();
+    	       // RunnerClass.downloadFilePath = AppConfig.downloadFilePath;
+    			Map<String, Object> prefs = new HashMap<String, Object>();
+    		    // Use File.separator as it will work on any OS
+    		   // prefs.put("download.default_directory",RunnerClass.downloadFilePath);
+    	        ChromeOptions options = new ChromeOptions();
+    	        options.addArguments("--remote-allow-origins=*");
+    	        //options.addArguments("--headless");
+    	        options.addArguments("--disable-gpu");  //GPU hardware acceleration isn't needed for headless
+    	        options.addArguments("--no-sandbox");  //Disable the sandbox for all software features
+    	        options.addArguments("--disable-dev-shm-usage");  //Overcome limited resource problems
+    	        options.addArguments("--disable-extensions");  //Disabling extensions can save resources
+    	        options.addArguments("--disable-plugins");
+    	        options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+    	        // Create a new ChromeDriver instance for each thread
+    	        ChromeDriver driver = new ChromeDriver(options);
+    	        driver.manage().window().maximize();
+    	        //test = extent.createTest("Login Page");
+    	        // Store the ChromeDriver instance in ThreadLocal
+    	        driverThreadLocal.set(driver);
+    	        driver.get(AppConfig.URL);
+    	        driver.findElement(Locators.userName).sendKeys(AppConfig.username);
+    	        driver.findElement(Locators.password).sendKeys(AppConfig.password);
+    	        Thread.sleep(2000);
+    	        driver.findElement(Locators.signMeIn).click();
+    	        Thread.sleep(3000);
+    	        wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+    	        
+    	        try
+    	        {
+    	        if(driver.findElement(Locators.loginError).isDisplayed())
+    	        {
+    	        	System.out.println("Login failed");
+    				return false;
+    	        }
+    	        }
+    	        catch(Exception e) {}
+    	       
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace();
+    		return false;
+    	}
+    	return true;
+        
+        
     }
 
-    public static void initializeBrowser() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--incognito"); // Open Chrome in incognito mode
-        WebDriverManager.chromedriver().clearDriverCache().setup();
-        driver = new ChromeDriver(options);
-        options.setPageLoadStrategy(PageLoadStrategy.NORMAL); // Or PageLoadStrategy.EAGER if needed
-        options.setPageLoadTimeout(Duration.ofSeconds(500));
-        actions = new Actions(driver);
-        driver.manage().window().maximize();
+    @Test(dataProvider = "testData")
+    public void testMethod(String reportID,String companyName, String reportName, String reportAliasName, String reportURL) throws Exception {
+    	
+    	String failedReason="";
+    	
+    	
+    	 
+    	System.out.println("<-------- "+companyName+"-------"+reportName+" -------->");
+    	// Retrieve the thread-specific ChromeDriver instance from ThreadLocal
+        ChromeDriver driver = driverThreadLocal.get();
+    
+		try {
+			String expiredURL = driver.getCurrentUrl();
+			if(expiredURL.contains("https://app.propertyware.com/pw/expired.jsp") || expiredURL.equalsIgnoreCase("https://app.propertyware.com/pw/expired.jsp?cookie") || expiredURL.contains(AppConfig.URL)) {
+				loggedOut = true;
+				driver.navigate().to(AppConfig.URL);
+				driver.findElement(Locators.userName).sendKeys(AppConfig.username); 
+				driver.findElement(Locators.password).sendKeys(AppConfig.password);
+			    Thread.sleep(2000);
+			    driver.findElement(Locators.signMeIn).click();
+			    Thread.sleep(3000);
+			}
+		}
+		catch(Exception e) {}
+		try {
+			String number = extractNumberFromURL(reportURL);
+	    	String finalURL = "https://app.propertyware.com/pw/reporting/reports.do?entityID=" + number;
+	    	 try {
+	             if( navigateToURL(driver,finalURL, companyName, reportName, reportAliasName, reportURL, reportID)==true) {
+	      		   
+	             }
+	          } catch (Exception e) {
+	              e.printStackTrace();
+	          }
+	          System.out.println("---------------------------------------------");
+		}
+		catch(Exception e) {}
+		
+		finally {
+			
+			setFailedReason(null);
+			driver.quit();
+		}
+		
     }
 
-
-    public static boolean signIn() {
-        try {
-            driver.get(AppConfig.URL);
-            driver.findElement(Locators.userName).sendKeys(AppConfig.username);
-            driver.findElement(Locators.password).sendKeys(AppConfig.password);
-            driver.findElement(Locators.signMeIn).click();
-            return !isLoginErrorDisplayed();
-        } catch (Exception e) {
-            System.out.println("Login failed: " + e.getMessage());
-            return false;
-        }
+    
+    @AfterSuite
+    public void executeCodeAfterSuite() {
+    	StringBuilder stringBuilder = new StringBuilder();
+    	
+    	   try {
+    		   if(SampleText.differenceInFilters()==true) {
+    			   try {
+	            		if(!SampleText.output.toString().isEmpty()) {
+	            			SampleText.sendEmail(SampleText.output);
+		            		//OpenJira.jiraTicketCreation(SampleText.output);
+	            		}
+	            		else {
+	            			stringBuilder.append("No differences in the filters");
+	            			SampleText.sendEmail(stringBuilder);
+	            			
+	            		}
+	            		
+	            	}
+	            	catch (Exception e) {
+	            		 e.printStackTrace();
+	     	            System.out.println("Error Sending Email/Jira Creation: " + e.getMessage());
+	            	}
+    		   }
+    		   else {
+    			   stringBuilder.append("Unable to get the differences in the filters");
+            		SampleText.sendEmail(stringBuilder);
+    		   }
+    	   }
+    	   catch (Exception e) {
+    		   stringBuilder.append("Unable to get the differences in the filters");
+        		SampleText.sendEmail(stringBuilder);
+        		 e.printStackTrace();
+ 	            System.out.println("Difference in filters fetching: " + e.getMessage());
+        	}
+    }
+    
+    
+    public static String getFailedReason() {
+    		 return failedReasonThreadLocal.get();
     }
 
-    public static boolean isLoginErrorDisplayed() {
-        try {
-            return driver.findElement(Locators.loginError).isDisplayed(); 
-        } catch (Exception e) {
-            return false;
-        }
+    public static void setFailedReason(String failedReason) {
+    	failedReasonThreadLocal.set(failedReason);
     }
-
-    public static void fetchDataFromDatabaseAndNavigate() throws IOException {
-        try {
+    
+        
+    public static boolean fetchDataFromDatabaseAndNavigate(String sqlSelect) throws IOException {
+    	Connection conn = null;
+    	Statement stmt= null;
+	    ResultSet rs= null;
+	    final String CONNECTION_URL = "jdbc:sqlserver://azrsrv001.database.windows.net;databaseName=HomeRiverDB;user=service_sql02;password=xzqcoK7T;encrypt=true;trustServerCertificate=true;";
+    	try {
+        	
             conn = DriverManager.getConnection(CONNECTION_URL);
-
-            // Query to fetch data
-            String sqlSelect = "SELECT DISTINCT TOP 100\r\n"
-            		+ "    ReportID,\r\n"
-            		+ "    CompanyName,\r\n"
-            		+ "    ReportName,\r\n"
-            		+ "    ReportAliasName,\r\n"
-            		+ "    ReportURL,\r\n"
-            		+ "    FilterValidationThroughAutomation,\r\n"
-            		+ "    FilterValueInPW\r\n"
-            		+ "FROM\r\n"
-            		+ "    Staging.Reportprocess\r\n"
-            		+ "WHERE\r\n"
-            		+ "    IsActive = 1\r\n"
-            		+ "    AND (\r\n"
-            		+ "        (FilterValidationThroughAutomation = 1 OR FilterValidationThroughAutomation IS NULL)\r\n"
-            		+ "        AND ReportAliasName <> '*Incremental - General Ledger (Current Month)'\r\n"
-            		+ "        AND ReportAliasName <> '*Incremental - General Ledger (Last Month)'\r\n"
-            		+ "    )\r\n"
-            		+ "    AND ReportID IN (1463,1364,1709,1371,1505,1270,1354,1374,1376,1312,1710,1421,1712,1369,1365,1379,1711,1373,1366,1378,1375,1250,1362,1370,1253,1377,1368,1372,1255,1367,1713)\r\n"
-            		+ "ORDER BY\r\n"
-            		+ "    ReportAliasName,\r\n"
-            		+ "    CompanyName;\r\n"
-            		+ "";
-
-            // Execute query
+           
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             rs = stmt.executeQuery(sqlSelect);
-
-            // Populate resultSetData list
-            List<String[]> resultSetData = new ArrayList<>();
-            resultSetData.clear();
-            rs.beforeFirst();
-            while (rs.next()) {
-                String[] rowData = {
-                        rs.getString("ReportID"),
-                        rs.getString("CompanyName"),
-                        rs.getString("ReportName"),
-                        rs.getString("ReportAliasName"),
-                        rs.getString("ReportURL")
-                };
-                resultSetData.add(rowData);
+            int rows =0;
+            if (rs.last()) 
+            {
+            	rows = rs.getRow();
+            	// Move to beginning
+            	rs.beforeFirst();
             }
-
-            // Process fetched data
-            for (String[] rowData : resultSetData) {
-                String reportID = rowData[0];
-                String companyName = rowData[1];
-                String reportName = rowData[2];
-                String reportAliasName = rowData[3];
-                String reportURL = rowData[4];
-                String number = extractNumberFromURL(reportURL);
-                String finalURL = "https://app.propertyware.com/pw/reporting/reports.do?entityID=" + number;
-
-                System.out.println("CompanyName: " + companyName);
-                System.out.println("ReportName: " + reportName);
-                System.out.println("ReportAliasName: " + reportAliasName);
-                System.out.println("ReportURL: " + reportURL);
-                System.out.println("Final URL with extracted number: " + finalURL);
-
-                try {
-                    navigateToURL(finalURL, companyName, reportName, reportAliasName, reportURL, reportID);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    continue;
+            System.out.println("No of Rows = "+rows);
+            RunnerClass2.pendingLeases = new String[rows][5];
+            
+            int  i=0;
+            while(rs.next())
+            {
+            	String 	ReportID =  rs.getObject(1).toString();
+            	String 	CompanyName =  (String) rs.getObject(2);
+                String  ReportName = rs.getObject(3).toString();
+                String ReportAliasName = rs.getObject(4).toString();
+                String ReportURL = rs.getObject(5).toString(); 
+                
+               
+    			//ID
+                try 
+                {
+    				RunnerClass2.pendingLeases[i][0] = ReportID;
                 }
-
-                // Update FilterValidationThroughAutomation flag in the database
-
-                System.out.println("---------------------------------------------");
-            }
+                catch(Exception e)
+                {
+                	RunnerClass2.pendingLeases[i][0] = "";
+                }
+              //Company
+                try 
+                {
+    				RunnerClass2.pendingLeases[i][1] = CompanyName;
+                }
+                catch(Exception e)
+                {
+                	RunnerClass2.pendingLeases[i][1] = "";
+                }
+              //leaseEntityID
+                try 
+                {
+    				RunnerClass2.pendingLeases[i][2] = ReportName;
+                }
+                catch(Exception e)
+                {
+                	RunnerClass2.pendingLeases[i][2] = "";
+                }
+              //DataDifference between moveindate and today
+                try 
+                {
+    				RunnerClass2.pendingLeases[i][3] = ReportAliasName;
+                }
+                catch(Exception e)
+                {
+                	RunnerClass2.pendingLeases[i][3] = "";
+                }
+              //moveINDate
+                try 
+                {
+    				RunnerClass2.pendingLeases[i][4] = ReportURL;
+                }
+                catch(Exception e)
+                {
+                	RunnerClass2.pendingLeases[i][4] = "";
+                }
+              
+    				i++;
+            }	
+            System.out.println("Total Pending Leases  = " +RunnerClass2.pendingLeases.length);
+            rs.close();
+            stmt.close();
+            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         } finally {
-            // Close resources
             try {
                 if (rs != null) {
                     rs.close();
@@ -202,21 +302,14 @@ public class RunnerClass2 {
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
+                
             }
         }
-    }
-
-
-
-    public static void navigateToURL(String finalURL, String companyName, String reportName, String reportAliasName, String reportURL, String reportID) throws InterruptedException, IOException {
-
+		return true;
+    }   
+    public static boolean navigateToURL(WebDriver driver,String finalURL, String companyName, String reportName, String reportAliasName, String reportURL, String reportID) throws InterruptedException {
         try {
-           
             driver.get(AppConfig.homeURL);
-            Actions actions = new Actions(driver);
-            actions.sendKeys(Keys.ESCAPE).build().perform();
-
-            // Adjust companyName if needed
             switch (companyName) {
                 case "California PFW":
                     companyName = "California pfw";
@@ -226,7 +319,7 @@ public class RunnerClass2 {
                     break;
                 case "Chicago PFW":
                     companyName = "Chicago pfw";
-                    break;
+                     break;
                 case "Hawaii Kona":
                     companyName = "Kona (Legacy Hawaiian Dream)";
                     break;
@@ -235,384 +328,50 @@ public class RunnerClass2 {
             }
 
             try {
-                // Select the market dropdown
+            	
+           
                 driver.findElement(Locators.marketDropdown).click();
                 String marketName = "HomeRiver Group - " + companyName;
                 Select marketDropdownList = new Select(driver.findElement(Locators.marketDropdown));
                 marketDropdownList.selectByVisibleText(marketName);
             } catch (Exception e) {
-                // If the market dropdown selection fails, try alternative naming convention
                 try {
                     driver.findElement(Locators.marketDropdown).click();
                     String marketName = "z.Legacy - HomeRiver Group - " + companyName;
                     Select marketDropdownList = new Select(driver.findElement(Locators.marketDropdown));
                     marketDropdownList.selectByVisibleText(marketName);
                 } catch (Exception e1) {
-                    // Handle any exceptions or errors during market dropdown selection
                     e1.printStackTrace();
+                    return false;
                 }
-            }
+            }; 
 
             Thread.sleep(2000);
-            actions.sendKeys(Keys.ESCAPE).build().perform(); // Handle pop-ups again
-            intermittentPopUp(driver);
-
-            // Access the final URL
+          
+ 
             driver.get(finalURL);
-            Thread.sleep(2000);
-
-            String dropdownText1 = "";
-            String displayClearFundDetails = "";
-            String dropdownText2 = "";
-            String dropdownText3 = "";
-            String searchByAccountValue= "";
-
-            // Check if permission denied message is displayed
-            boolean permissionDenied = !driver.findElements(By.xpath("//h2[contains(text(),'You do not have permission to access the requested')]")).isEmpty();
-            if (permissionDenied) {
-                WebElement permissionDeniedElement = driver.findElement(By.xpath("//h2[contains(text(),'You do not have permission to access the requested')]"));
-                if (permissionDeniedElement.isDisplayed()) {
-                    String permissionDeniedText = permissionDeniedElement.getText();
-                    System.out.println(permissionDeniedText);
-                    dropdownText1 = "Wrong URL";
-                    updateDatabase(reportID, dropdownText1);
-                }
-            } else {
-                // Wait for elements to be visible
-                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(500));
-                wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='ext-el-mask-msg x-mask-loading']")));
-                intermittentPopUp(driver);
-                wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[text()='Filters']")));
-
-                // Click on 'Filters'
-                driver.findElement(By.xpath("//button[text()='Filters']")).click();
-
-                // Check if 'Falls Within' dropdown is present
-                StringBuilder extractedValues = new StringBuilder(); // Initialize a StringBuilder to concatenate values
-                boolean fallsWithinPresent = driver.findElements(By.xpath("(//div[@class='x-form-item '])/label[text()='Falls Within']")).size() > 0;
-                boolean wherePresent = driver.findElements(By.xpath("(//div[@class='x-form-item '])/label[text()='Where']")).size() > 0;
-                boolean calculateBalanceData = driver.findElements(By.xpath("//*[text()='Calculate Balances As Of']")).size() > 0;
-                boolean searchByAccount = driver.findElements(By.xpath("//*[text()='Search for Accounts']")).size() > 0;
-                boolean reportOptions = driver.findElements(By.xpath("//*[text()='Report Options']")).size() > 0;
-                boolean displayClearFundDetailsappear = driver.findElements(By.xpath("//*[text()='Display Clear Funds Detail']")).size() > 0;
-                boolean consolidatedappear = driver.findElements(By.xpath("//*[text()='Consolidated']")).size() > 0;
-                boolean accountTypeFilterappear = driver.findElements(By.xpath("//*[text()='Account Type Filter']")).size() > 0;
-                boolean propertyFilter = driver.findElements(By.xpath("//*[text()='Property Filters']")).size() > 0;
-                boolean cashorAccrualAccountingBasisappears  = driver.findElements(By.xpath("//*[text()='Cash or Accrual Accounting Basis']")).size() > 0;
-                boolean prePaymentsappears = driver.findElements(By.xpath("//*[text()='Prepayments']")).size() > 0;
-
-                boolean daysVacantCalculationappears = driver.findElements(By.xpath("//*[text()='Days Vacant Calculation']/following::input[2]")).size() > 0;
-                
-
-                if (calculateBalanceData) {
-                    try {
-                        dropdownText3 = driver.findElement(By.xpath("//*[text()='Date ']/following::input[1]")).getAttribute("value");
-                        System.out.println(dropdownText3);
-                        extractedValues.append("Calculate Balance Data: ").append(dropdownText3).append("\n"); // Append to StringBuilder
-                    } catch (Exception e) {
-                        // Handle any exceptions or errors
-                        e.printStackTrace();
-                    }
-                }
-
-                if (fallsWithinPresent) {
-                    try {
-                        dropdownText1 = driver.findElement(By.xpath("//*[text()='Falls Within']/following::input[2]")).getAttribute("value");
-                        System.out.println(dropdownText1);
-                        if (dropdownText1.equals("Custom Date Range") || dropdownText1.equals("Yesterday")) {
-                            dropdownText1 = "";
-                        }
-                        extractedValues.append("Falls Within: ").append(dropdownText1).append("\n"); // Append to StringBuilder
-                    } catch (Exception e) {
-                        // Handle any exceptions or errors
-                        e.printStackTrace();
-                    }
-                }
-
-                if (wherePresent) {
-                    try {
-                        dropdownText2 = driver.findElement(By.xpath("//*[text()='Where']/following::input[2]")).getAttribute("value");
-                        System.out.println(dropdownText2);
-                        extractedValues.append("Where: ").append(dropdownText2).append("\n"); // Append to StringBuilder
-                    } catch (Exception e) {
-                        // Handle any exceptions or errors
-                        e.printStackTrace();
-                    }
-                }
-
-                if (propertyFilter) {
-                    if (cashorAccrualAccountingBasisappears) {
-                        try {
-                            String cashorAccrualAccountingBasis = driver.findElement(By.xpath("//*[text()='Cash or Accrual Accounting Basis']/following::input[2]")).getAttribute("value");
-                            if (cashorAccrualAccountingBasis == null || cashorAccrualAccountingBasis.isEmpty()) {
-                                cashorAccrualAccountingBasis = "No Value";
-                            }
-                            System.out.println(cashorAccrualAccountingBasis);
-                            extractedValues.append("Cash or Accrual Accounting Basis: ").append(cashorAccrualAccountingBasis).append("\n"); // Append to StringBuilder
-                        } catch (Exception e) {
-                            // Handle any exceptions or errors
-                            e.printStackTrace();
-                        }
-                    }
-
-                    if (prePaymentsappears) {
-                        try {
-                            String prePayments = driver.findElement(By.xpath("//*[text()='Prepayments']/following::input[2]")).getAttribute("value");
-                            if (prePayments == null || prePayments.isEmpty()) {
-                                prePayments = "No Value";
-                            }
-                            System.out.println(prePayments);
-                            extractedValues.append("Prepayments: ").append(prePayments).append("\n"); // Append to StringBuilder
-                        } catch (Exception e) {
-                            // Handle any exceptions or errors
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-
-                try {
-                    List<WebElement> divElements = driver.findElements(By.xpath("//*[@id='propertyFiltersRadio']/div/div/div/div[1]/div"));
-
-                    for (int i = 0; i < divElements.size(); i++) {
-                        WebElement divElement = divElements.get(i);
-                        WebElement radioButton = divElement.findElement(By.tagName("input"));
-                        if (radioButton.getAttribute("checked") != null) {
-                            String selectedValue = radioButton.getAttribute("value");
-                            System.out.println("Selected value: " + selectedValue);
-
-                            // Construct the XPath dynamically with the index i
-                            String labelXPath = String.format("//*[@id='propertyFiltersRadio']/div/div/div/div[1]/div[%d]/label", i + 1);
-
-                            // Find the label associated with the checked radio button using the constructed XPath
-                            WebElement labelElement = driver.findElement(By.xpath(labelXPath));
-                            String labelText = labelElement.getText();
-                            System.out.println("Label text: " + labelText);
-
-                            //extractedValues.append("Selected value: ").append(selectedValue).append("\n"); // Append to StringBuilder
-                            extractedValues.append("Property Filters: ").append(labelText).append("\n\n"); // Append to StringBuilder
-
-                            break; // Exit the loop after finding the selected radio button and its label
-                        }
-                    }
-                } catch (Exception e) {
-                    // Handle any exceptions or errors
-                    e.printStackTrace();
-                }
-
-                try {
-                    if (searchByAccount) {
-                        searchByAccountValue = driver.findElement(By.xpath("//*[text()='Search for Accounts']/following::input[1]")).getAttribute("value");
-                        System.out.println(searchByAccountValue);
-                        extractedValues.append("Search By Account Value: ").append(searchByAccountValue).append("\n"); // Append to StringBuilder
-                    }
-                } catch (Exception e) {
-                    // Handle any exceptions or errors
-                    e.printStackTrace();
-                }
-
-                try {
-                    if (reportOptions) {
-                        /*WebElement parentElement = driver.findElement(By.xpath("(//*[@class='x-fieldset-body'])[7]"));
-
-                        // Check if parentElement is found and displayed
-                        if (parentElement != null && parentElement.isDisplayed()) {
-                            // Find all child elements within the parent element
-                            List<WebElement> elements = parentElement.findElements(By.xpath(".//*"));
-
-                            // Iterate through each element
-                            for (WebElement element : elements) {
-                                // Check if the element is displayed
-                                if (element.isDisplayed()||element.isEnabled()||element.isSelected()) {
-                                    // Get the text content of the element
-                                    String elementText = element.getText().trim();
-
-                                    // Print the text content
-                                    System.out.println("Text: " + elementText);
-                                }
-                            }
-
-                        }*/
-
-                        if (displayClearFundDetailsappear) {
-                            displayClearFundDetails = driver.findElement(By.xpath("//*[text()='Display Clear Funds Detail']/following::input[1]")).getAttribute("value");
-                            if (displayClearFundDetails.equals("") || (displayClearFundDetails.equals(null))) {
-                                displayClearFundDetails = "No Value";
-                            }
-                            System.out.println(displayClearFundDetails);
-                            extractedValues.append("Display ClearFund Details: ").append(displayClearFundDetails).append("\n"); // Append to StringBuilder
-
-                            String printed = driver.findElement(By.xpath("//*[text()='Printed']/following::input[2]")).getAttribute("value");
-                            if (printed.equals("") || (printed.equals(null))) {
-                                printed = "No Value";
-                            }
-                            System.out.println(printed);
-                            extractedValues.append("Printed: ").append(printed).append("\n"); // Append to StringBuilder
-
-                            String cleared = driver.findElement(By.xpath("//*[text()='Cleared']/following::input[2]")).getAttribute("value");
-                            if (cleared.equals("") || (cleared.equals(null))) {
-                                cleared = "No Value";
-                            }
-                            System.out.println(cleared);
-                            extractedValues.append("Cleared: ").append(cleared).append("\n"); // Append to StringBuilder
-
-                            String includeVideoedChecks = driver.findElement(By.xpath("//*[text()='Include Voided Checks']/following::input[2]")).getAttribute("value");
-                            if (includeVideoedChecks.equals("") || (includeVideoedChecks.equals(null))) {
-                                includeVideoedChecks = "No Value";
-                            }
-                            System.out.println(includeVideoedChecks);
-                            extractedValues.append("Include Videoed Checks: ").append(includeVideoedChecks).append("\n"); // Append to StringBuilder
-
-                            String payeeName = driver.findElement(By.xpath("//*[text()='Payee Name']/following::input[1]")).getAttribute("value");
-                            if (payeeName.equals("") || (payeeName.equals(null))) {
-                                payeeName = "No Value";
-                            }
-                            System.out.println(payeeName);
-                            extractedValues.append("Payee Name: ").append(payeeName).append("\n"); // Append to StringBuilder
-
-                            String payeeType = driver.findElement(By.xpath("//*[text()='Payee Type']/following::input[2]")).getAttribute("value");
-                            if (payeeType.equals("") || (payeeType.equals(null))) {
-                                payeeType = "No Value";
-                            }
-                            System.out.println(payeeType);
-                            extractedValues.append("Payee Type: ").append(payeeType).append("\n"); // Append to StringBuilder
-
-                            String checkNumberFrom = driver.findElement(By.xpath("//*[text()='Check Number']/following::input[1]")).getAttribute("value");
-                            if (checkNumberFrom.equals("") || (checkNumberFrom.equals(null))) {
-                                checkNumberFrom = "No Value";
-                            }
-                            System.out.println(checkNumberFrom);
-                            extractedValues.append("Check Number From: ").append(checkNumberFrom).append("\n"); // Append to StringBuilder
-
-                            String checkNumberTo = driver.findElement(By.xpath("//*[text()='Check Number']/following::input[2]")).getAttribute("value");
-                            if (checkNumberTo.equals("") || (checkNumberTo.equals(null))) {
-                                checkNumberTo = "No Value";
-                            }
-                            System.out.println(checkNumberTo);
-                            extractedValues.append("Check Number To: ").append(checkNumberTo).append("\n"); // Append to StringBuilder
-
-                            String checkAmountrFrom = driver.findElement(By.xpath("//*[text()='Check Amount']/following::input[1]")).getAttribute("value");
-                            if (checkAmountrFrom.equals("") || (checkAmountrFrom.equals(null))) {
-                                checkAmountrFrom = "No Value";
-                            }
-                            System.out.println(checkAmountrFrom);
-                            extractedValues.append("Check Amount From: ").append(checkAmountrFrom).append("\n"); // Append to StringBuilder
-
-                            String checkAmountrTo = driver.findElement(By.xpath("//*[text()='Check Amount']/following::input[2]")).getAttribute("value");
-                            if (checkAmountrTo.equals("") || (checkAmountrTo.equals(null))) {
-                                checkAmountrTo = "No Value";
-                            }
-                            System.out.println(checkAmountrTo);
-                            extractedValues.append("Check Amount To: ").append(checkAmountrTo).append("\n"); // Append to StringBuilder
-
-                            String printedOnFrom = driver.findElement(By.xpath("//*[text()='Printed On']/following::input[1]")).getAttribute("value");
-                            if (printedOnFrom.equals("") || (printedOnFrom.equals(null))) {
-                                printedOnFrom = "No Value";
-                            }
-                            System.out.println(printedOnFrom);
-                            extractedValues.append("Printed On From: ").append(printedOnFrom).append("\n"); // Append to StringBuilder
-
-                            String printedOnTo = driver.findElement(By.xpath("//*[text()='Printed On']/following::input[2]")).getAttribute("value");
-                            if (printedOnTo.equals("") || (printedOnTo.equals(null))) {
-                                printedOnTo = "No Value";
-                            }
-                            System.out.println(printedOnTo);
-                            extractedValues.append("Printed On To: ").append(printedOnTo).append("\n"); // Append to StringBuilder*/
-
-                        } else if (consolidatedappear) {
-                            String consolidated = driver.findElement(By.xpath("//*[text()='Consolidated']/following::input[2]")).getAttribute("value");
-                            if (consolidated.equals("") || (consolidated.equals(null))) {
-                                consolidated = "No Value";
-                            }
-                            System.out.println(consolidated);
-                            extractedValues.append("Consolidated: ").append(consolidated).append("\n"); // Append to StringBuilder*/
-
-                            String accountswithnoactivity = driver.findElement(By.xpath("//*[text()='Hide $0 Accounts with no activity']/following::input[2]")).getAttribute("value");
-                            if (accountswithnoactivity.equals("") || (accountswithnoactivity.equals(null))) {
-                                accountswithnoactivity = "No Value";
-                            }
-                            System.out.println(accountswithnoactivity);
-                            extractedValues.append("Hide $0 Accounts with no activity: ").append(accountswithnoactivity).append("\n"); // Append to StringBuilder*/
-
-                            String summaryRow = driver.findElement(By.xpath("//*[text()='Hide $0 Accounts with no activity']/following::input[2]")).getAttribute("value");
-                            if (summaryRow.equals("") || (summaryRow.equals(null))) {
-                                summaryRow = "No Value";
-                            }
-                            System.out.println(summaryRow);
-                            extractedValues.append("Hide $0 Summary Row: ").append(summaryRow).append("\n"); // Append to StringBuilder*/
-                        }
-                        else if(accountTypeFilterappear) {
-                        	String accountTypeFilter = driver.findElement(By.xpath("//*[text()='Account Type Filter']/following::input[2]")).getAttribute("value");
-                            if (accountTypeFilter.equals("") || (accountTypeFilter.equals(null))) {
-                            	accountTypeFilter = "No Value";
-                            }
-                            System.out.println(accountTypeFilter);
-                            extractedValues.append("Account Type Filter: ").append(accountTypeFilter).append("\n"); // Append to StringBuilder*/
-                        	
-                        }
-                        else if(daysVacantCalculationappears) {
-                        	String daysVacantCalculation = driver.findElement(By.xpath("//*[text()='Days Vacant Calculation']/following::input[2]")).getAttribute("value");
-                            if (daysVacantCalculation.equals("") || (daysVacantCalculation.equals(null))) {
-                            	daysVacantCalculation = "No Value";
-                            }
-                            System.out.println(daysVacantCalculation);
-                            extractedValues.append("Days Vacant Calculation: ").append(daysVacantCalculation).append("\n"); // Append to StringBuilder*/
-                        	
-                        }
-                        else {
-                        	String excludeDeactivatedBuildings = driver.findElement(By.xpath("//*[text()='Exclude Deactivated Buildings']/following::input[2]")).getAttribute("value");
-                            if (excludeDeactivatedBuildings.equals("") || (excludeDeactivatedBuildings.equals(null))) {
-                            	excludeDeactivatedBuildings = "No Value";
-                            }
-                            System.out.println(excludeDeactivatedBuildings);
-                            extractedValues.append("Exclude Deactivated Buildings: ").append(excludeDeactivatedBuildings).append("\n"); // Append to StringBuilder*/
-
-                        }
-
-                    }
-                } catch (Exception e) {
-                    // Handle any exceptions or errors
-                    e.printStackTrace();
-                }
-
-                try {
-                    List<WebElement> elements1 = driver.findElements(By.xpath("(//*[@class='x-table-layout-cell']/div/div/div[2]/div/div/div[2]/div/div)"));
-
-                    // Print custom filter indication
-                    System.out.println("Custom Filter:");
-
-                    // Append custom filter indication
-                    extractedValues.append("Custom Filter:\n");
-
-                    for (WebElement row : elements1) {
-                        // Find all cells (td) within the row
-                        List<WebElement> cells = row.findElements(By.xpath(".//td"));
-
-                        // Print content of each cell
-                        for (WebElement cell : cells) {
-                            System.out.print(cell.getText() + "\t"); // Print cell content
-                            extractedValues.append(cell.getText()).append("\t"); // Append to StringBuilder
-                        }
-                        System.out.println(); // Move to the next line after printing the entire row
-                        extractedValues.append("\n"); // Move to the next line after printing the entire row
-                    }
-                } catch (Exception e) {
-                    // Handle any exceptions or errors
-                    e.printStackTrace();
-                }
-
-
-                // Update database with the concatenated string
-                updateDatabase(reportID, extractedValues.toString());
-            }
-
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(500));
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='ext-el-mask-msg x-mask-loading']")));
+            intermittentPopUp(driver);
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[text()='Filters']")));
+            Thread.sleep(5000);
+            // Click on 'Filters'
+            driver.findElement(By.xpath("//button[text()='Filters']")).click();
+            
+            Thread.sleep(5000);
+           if( extractTextAndInputValuesFromPopup(driver, reportID)==true) {
+        	   return true;
+           }
+           else {
+        	   return false;
+           }
+         
         } catch (Exception e) {
-
-            String dropdownText1 = "Failed to load the page";
+        	String dropdownText1 = "Failed to load the page";
             updateDatabase(reportID, dropdownText1);
             e.printStackTrace();
             // Handle any exceptions or errors
-            // driver.quit();
+            driver.quit();
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--remote-allow-origins=*");
             options.addArguments("--incognito"); // Open Chrome in incognito mode
@@ -624,36 +383,116 @@ public class RunnerClass2 {
             driver.manage().window().maximize();
             driver.get(AppConfig.URL);
             driver.findElement(Locators.userName).sendKeys(AppConfig.username);
+            Thread.sleep(1000);
             driver.findElement(Locators.password).sendKeys(AppConfig.password);
+            Thread.sleep(1000);
             driver.findElement(Locators.signMeIn).click();
-
+            Thread.sleep(1000);
+            boolean unauthorizedPopupAppearts = false;
+          try {   unauthorizedPopupAppearts = driver.findElements(By.xpath("//*[@class='toast toast-error']")).size() > 0;}
+          catch (Exception e1) {}
+            if(unauthorizedPopupAppearts) {
+            	Thread.sleep(1000);
+            	driver.findElement(By.xpath("//*[@class='toast-close-button']")).click();
+            	Thread.sleep(1000);
+            	driver.findElement(Locators.userName).sendKeys(AppConfig.username);
+            	Thread.sleep(1000);
+                driver.findElement(Locators.password).sendKeys(AppConfig.password);
+                Thread.sleep(1000);
+                driver.findElement(Locators.signMeIn).click();
+                Thread.sleep(1000);
+            	
+            }
         }
+		return true;
     }
-
-
-
-
-
-    private static void updateDatabase(String reportID, String extractedValues) {
-
+    public static boolean extractTextAndInputValuesFromPopup(WebDriver driver, String reportID) {
+        JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
         try {
+            Thread.sleep(3000);
+            Object result = jsExecutor.executeScript("return document.querySelectorAll('.x-panel-body.x-panel-body-noheader.x-panel-body-noborder.x-form *');");
+            if (result instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<WebElement> elements = (List<WebElement>) result;
+                boolean isInCustomFilterModeSection = false;
+                boolean customFilterModeLabelPrinted = false;
+                StringBuilder extractedValues = new StringBuilder();
+                boolean isFirstCustomFilterModeLabel = true;
+
+                for (WebElement element : elements) {
+                    if (element.isDisplayed()) {
+                        String text = element.getText().trim();
+                        String inputValue = element.getAttribute("value");
+
+                        if ("label".equalsIgnoreCase(element.getTagName())) {
+                            if ("Custom Filter Mode".equalsIgnoreCase(text)) {
+                                if (isFirstCustomFilterModeLabel) {
+                                    extractedValues.append(text).append(" : ").append("\n");
+                                    isFirstCustomFilterModeLabel = false;
+                                } else {
+                                    extractedValues.append(text).append(" Duplicate : ");
+                                }
+                            } else {
+                                extractedValues.append(text).append(" : ");
+                            }
+                        } else if ("input".equalsIgnoreCase(element.getTagName())) {
+                            if ("radio".equalsIgnoreCase(element.getAttribute("type"))) {
+                                if (element.isSelected()) {
+                                    String labelText = element.findElement(By.xpath("following-sibling::label")).getText().trim();
+                                    extractedValues.append("Checked: ").append(labelText).append("\n");
+                                }
+                            } else {
+                                extractedValues.append(inputValue).append("\n");
+                            }
+                        }
+
+                        if ("Custom Filter Mode".equalsIgnoreCase(text)) {
+                            isInCustomFilterModeSection = true;
+                            if (!customFilterModeLabelPrinted) {
+                                extractedValues.append(text).append(" : ");
+                                customFilterModeLabelPrinted = true;
+                            }
+                        } else if (isInCustomFilterModeSection && "table".equalsIgnoreCase(element.getTagName())) {
+                            List<WebElement> rows = element.findElements(By.tagName("tr"));
+                            for (WebElement row : rows) {
+                                List<WebElement> cells = row.findElements(By.tagName("td"));
+                                for (WebElement cell : cells) {
+                                    extractedValues.append(cell.getText()).append("\t");
+                                }
+                                extractedValues.append("\n");
+                            }
+                        }
+                    }
+                }
+
+                System.out.println("Final Extracted Values:");
+                System.out.println(extractedValues.toString());
+                updateDatabase(reportID, extractedValues.toString().trim());
+            } else {
+                System.out.println("Error: Script did not return a list of WebElements.");
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+		return true;
+    }
+    private static void updateDatabase(String reportID, String extractedValues) {
+    	 try (Connection conn = DriverManager.getConnection(AppConfig.connectionUrl);
+ 		        Statement stmt = conn.createStatement();) 
+ 		    {
             String sqlUpdate = "UPDATE Staging.ReportProcess SET FilterValueInPW = ?, FilterValidationThroughAutomation = 1 WHERE ReportID = ?";
             PreparedStatement pstmt = conn.prepareStatement(sqlUpdate);
             pstmt.setString(1, extractedValues);
             pstmt.setString(2, reportID);
             int rowsAffected = pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace(); // Or log the exception
+            e.printStackTrace();
         }
     }
 
-
-
     
-
-
-
-
     private static String extractNumberFromURL(String url) {
         Pattern pattern = Pattern.compile("/(\\d+)/");
         Matcher matcher = pattern.matcher(url);
@@ -662,30 +501,90 @@ public class RunnerClass2 {
         }
         return null;
     }
-
-    public static void intermittentPopUp(WebDriver driver) {
-        try {
-            driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-            try {
-                WebElement container = driver.findElement(By.id("viewReportExpiryContainer"));
-                if (container.isDisplayed()) {
-                    WebElement inputElement = container.findElement(By.xpath("./div[2]/input"));
-                    inputElement.click();
-                }
-            } catch (Exception ignored) {
-            }
-            try {
-                WebElement unableToGetDatePopup = driver.findElement(By.id("//div[@class=' x-window x-window-plain x-window-dlg']"));
-                if (unableToGetDatePopup.isDisplayed()) {
-                    WebElement inputElement = unableToGetDatePopup.findElement(By.xpath("//button[text()=\"OK\"]"));
-                    inputElement.click();
-                }
-            } catch (Exception ignored) {
-            }
-            
-        } catch (Exception ignored) {
-        }
-        
+    public static void intermittentPopUp(WebDriver driver)
+	{
+		//Pop up after clicking lease name
+				try
+				{
+					driver.manage().timeouts().implicitlyWait(3,TimeUnit.SECONDS);
+			       WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+			        try {
+			        	Thread.sleep(1000);
+			        	driver.switchTo().frame(driver.findElement(Locators.scheduleMaintananceIFrame));
+			        	if(driver.findElement(Locators.scheduleMaintanancePopUp2).isDisplayed()) {
+			        		Thread.sleep(1000);
+			        		driver.findElement(Locators.maintananceCloseButton).click();
+			        	}
+			        	driver.switchTo().defaultContent();
+			        }
+			        catch(Exception e) {}
+			        try
+			        {
+					if(driver.findElement(Locators.popUpAfterClickingLeaseName).isDisplayed())
+					{
+						driver.findElement(Locators.popupClose).click();
+					}
+			        }
+			        catch(Exception e) {}
+			        try
+			        {
+					if(driver.findElement(Locators.scheduledMaintanancePopUp).isDisplayed())
+					{
+						driver.findElement(Locators.scheduledMaintanancePopUpOkButton).click();
+					}
+					 
+			        }
+			        catch(Exception e) {}
+			        try
+			        {
+			        if(driver.findElement(Locators.scheduledMaintanancePopUpOkButton).isDisplayed()) {
+			        	driver.findElement(Locators.scheduledMaintanancePopUpOkButton).click();
+			        }
+			     
+			        } 
+			        catch(Exception e) {}
+			       
+					driver.manage().timeouts().implicitlyWait(5,TimeUnit.SECONDS);
+			        wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+				}
+				catch(Exception e) {}
+				 try {
+		                WebElement container = driver.findElement(By.id("viewReportExpiryContainer"));
+		                if (container.isDisplayed()) {
+		                    WebElement inputElement = container.findElement(By.xpath("./div[2]/input"));
+		                    inputElement.click();
+		                }
+		            } catch (NoSuchElementException e) {
+		                
+		            } catch (StaleElementReferenceException e) {
+		                
+		            } catch (Exception e) {
+		                
+		            }
+				 try
+				 {
+					 WebElement unableToGetDatePopup = driver.findElement(By.id("//div[@class=' x-window x-window-plain x-window-dlg']"));
+		                if (unableToGetDatePopup.isDisplayed()) {
+		                    WebElement inputElement = unableToGetDatePopup.findElement(By.xpath("//button[text()=\"OK\"]"));
+		                    inputElement.click();
+		                }
+				 } catch (NoSuchElementException e) {
+		                
+		            } catch (StaleElementReferenceException e) {
+		                
+		            } catch (Exception e) {
+		                
+		            }
+				 }
+	
+    @DataProvider(name = "testData", parallel = true)
+    public Object[][] testData() {
+    	try {
+    		fetchDataFromDatabaseAndNavigate(AppConfig.pendingLeasesQuery);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return pendingLeases;
     }
 }

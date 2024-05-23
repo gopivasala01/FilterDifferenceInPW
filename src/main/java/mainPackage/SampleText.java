@@ -64,9 +64,7 @@ public class SampleText {
                         output.append(difference).append("\n");
                         output.append(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n"); // Empty line between records
                     }
-                    catch(Exception e) {
-                    	
-                    }
+                    catch(Exception e) {}
                     
                 }
                
@@ -115,7 +113,7 @@ public class SampleText {
         String smtpPort = "587";
         String emailFrom = "gopi.v@beetlerim.com";
        // String emailTo = "gopi.v@beetlerim.com,naveen.p@beetlerim.com";
-        String emailTo = "naveen.p@beetlerim.com, gopi.v@beetlerim.com , ratna@beetlerim.com , dahoffman@homeriver.com ";
+        String emailTo = "naveen.p@beetlerim.com";//"naveen.p@beetlerim.com, gopi.v@beetlerim.com , ratna@beetlerim.com , dahoffman@homeriver.com ";
         String emailSubject = "PropertyWare Report Filter Validation - "+startDateString;
         String emailBody = output2.toString();
 
