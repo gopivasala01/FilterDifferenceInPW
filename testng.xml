@@ -3,7 +3,7 @@
 <suite parallel="tests" name="DataProviderSuite" data-provider-thread-count="5">
   <test name="DataProviderTest">
     <classes>
-      <class name="mainPackage.RunnerClass2"/>
+      <class name="mainPackage.RunnerClass"/>
     </classes>
   </test > <!-- DataProviderTest -->
 </suite> <!-- DataProviderSuite -->

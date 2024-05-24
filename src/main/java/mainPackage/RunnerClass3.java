@@ -1,291 +1,241 @@
 package mainPackage;
 
+import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
+public class RunnerClass3 {
+	 static WebDriver driver;
+	    static Actions actions;
+	    static Connection conn;
+	    static Statement stmt;
+	    static ResultSet rs;
+	    static final String CONNECTION_URL = "jdbc:sqlserver://azrsrv001.database.windows.net;databaseName=HomeRiverDB;user=service_sql02;password=xzqcoK7T;encrypt=true;trustServerCertificate=true;";
+	    static StringBuilder stringBuilder = new StringBuilder();
+	    
+	    
+	    String 	text1 = "";
+	    public static void main(String[] args) {
+	        try {
+	            FileUtils.cleanDirectory(new File("C:\\SantoshMurthyP\\Lease Audit Automation\\ReportExcel\\reports.xlsx"));
+	        } catch (Exception e) {}
+	        
+	        //----------------------- Update Last week Filter values to column PreviousFilterValueInPW---------------
+	      String updatePreviousFilter = "UPDATE Staging.ReportProcess SET PreviousFilterValueInPw = FilterValueInPw";
+	      updateTable(updatePreviousFilter);
+	       
+	       //----------------------Null the column FilterValueInPW for current run----------------------------------
+	       String updateFilterValueInPW = "UPDATE Staging.ReportProcess SET FilterValueInPw = NULL";
+	       updateTable(updateFilterValueInPW);
+	        
+	        
+	        try {
+	            initializeBrowser();
+	            if (signIn()==true) {
+	            	
+	            	try {
+	            		 String sqlSelect = 
+	                     		
+	            	            	//	"SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW FROM Staging.Reportprocess	 where	ReportAliasName ='*Bulk - Portfolios'";
 
-public class RunnerClass2 {
-	
-    public static String[][] pendingLeases;
-	public static WebDriverWait wait;
-	public static boolean loggedOut = false;
-    
-
-    // Use ThreadLocal to store a separate ChromeDriver instance for each thread
-    private static ThreadLocal<ChromeDriver> driverThreadLocal = new ThreadLocal<ChromeDriver>();
-    private static ThreadLocal<String> failedReasonThreadLocal = new ThreadLocal<>();
-    
-    
-
- 
-
-    @BeforeMethod
-    public boolean setUp(){
-        // Set up WebDriverManager to automatically download and set up ChromeDriver
-    	//System.setProperty("webdriver.http.factory", "jdk-http-client");
-    	try {
-    			WebDriverManager.chromedriver().clearDriverCache().setup();
-    		 	//WebDriverManager.chromedriver().setup();
-    	       // RunnerClass.downloadFilePath = AppConfig.downloadFilePath;
-    			Map<String, Object> prefs = new HashMap<String, Object>();
-    		    // Use File.separator as it will work on any OS
-    		   // prefs.put("download.default_directory",RunnerClass.downloadFilePath);
-    	        ChromeOptions options = new ChromeOptions();
-    	        options.addArguments("--remote-allow-origins=*");
-    	        //options.addArguments("--headless");
-    	        options.addArguments("--disable-gpu");  //GPU hardware acceleration isn't needed for headless
-    	        options.addArguments("--no-sandbox");  //Disable the sandbox for all software features
-    	        options.addArguments("--disable-dev-shm-usage");  //Overcome limited resource problems
-    	        options.addArguments("--disable-extensions");  //Disabling extensions can save resources
-    	        options.addArguments("--disable-plugins");
-    	        options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-    	        // Create a new ChromeDriver instance for each thread
-    	        ChromeDriver driver = new ChromeDriver(options);
-    	        driver.manage().window().maximize();
-    	        //test = extent.createTest("Login Page");
-    	        // Store the ChromeDriver instance in ThreadLocal
-    	        driverThreadLocal.set(driver);
-    	        driver.get(AppConfig.URL);
-    	        driver.findElement(Locators.userName).sendKeys(AppConfig.username);
-    	        driver.findElement(Locators.password).sendKeys(AppConfig.password);
-    	        Thread.sleep(2000);
-    	        driver.findElement(Locators.signMeIn).click();
-    	        Thread.sleep(3000);
-    	        wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-    	        
-    	        try
-    	        {
-    	        if(driver.findElement(Locators.loginError).isDisplayed())
-    	        {
-    	        	System.out.println("Login failed");
-    				return false;
-    	        }
-    	        }
-    	        catch(Exception e) {}
-    	       
-    	}
-    	catch(Exception e) {
-    		e.printStackTrace();
-    		return false;
-    	}
-    	return true;
-        
-        
-    }
-
-    @Test(dataProvider = "testData")
-    public void testMethod(String reportID,String companyName, String reportName, String reportAliasName, String reportURL) throws Exception {
-    	
-    	String failedReason="";
-    	
-    	
-    	 
-    	System.out.println("<-------- "+companyName+"-------"+reportName+" -------->");
-    	// Retrieve the thread-specific ChromeDriver instance from ThreadLocal
-        ChromeDriver driver = driverThreadLocal.get();
-    
-		try {
-			String expiredURL = driver.getCurrentUrl();
-			if(expiredURL.contains("https://app.propertyware.com/pw/expired.jsp") || expiredURL.equalsIgnoreCase("https://app.propertyware.com/pw/expired.jsp?cookie") || expiredURL.contains(AppConfig.URL)) {
-				loggedOut = true;
-				driver.navigate().to(AppConfig.URL);
-				driver.findElement(Locators.userName).sendKeys(AppConfig.username); 
-				driver.findElement(Locators.password).sendKeys(AppConfig.password);
-			    Thread.sleep(2000);
-			    driver.findElement(Locators.signMeIn).click();
-			    Thread.sleep(3000);
-			}
-		}
-		catch(Exception e) {}
-		try {
-			String number = extractNumberFromURL(reportURL);
-	    	String finalURL = "https://app.propertyware.com/pw/reporting/reports.do?entityID=" + number;
-	    	 try {
-	             if( navigateToURL(driver,finalURL, companyName, reportName, reportAliasName, reportURL, reportID)==true) {
-	      		   
-	             }
-	          } catch (Exception e) {
-	              e.printStackTrace();
-	          }
-	          System.out.println("---------------------------------------------");
-		}
-		catch(Exception e) {}
-		
-		finally {
-			
-			setFailedReason(null);
-			driver.quit();
-		}
-		
-    }
-
-    
-    @AfterSuite
-    public void executeCodeAfterSuite() {
-    	StringBuilder stringBuilder = new StringBuilder();
-    	
-    	   try {
-    		   if(SampleText.differenceInFilters()==true) {
-    			   try {
-	            		if(!SampleText.output.toString().isEmpty()) {
-	            			SampleText.sendEmail(SampleText.output);
-		            		//OpenJira.jiraTicketCreation(SampleText.output);
-	            		}
-	            		else {
-	            			stringBuilder.append("No differences in the filters");
-	            			SampleText.sendEmail(stringBuilder);
-	            			
-	            		}
-	            		
+	            	            		
+	            	            		
+	            	            		"SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+	            	            		+ "	FROM Staging.Reportprocess \r\n"
+	            	            		+ "	WHERE IsActive = 1 \r\n"
+	            	            		+ "	  AND (FilterValidationThroughAutomation <> 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
+	            	            		+ "	AND ReportAliasName <>'*Incremental - General Ledger (Last Month)' AND ReportAliasName <> '*Incremental - General Ledger (Current Month)'\r\n"
+	            	            		+ "	ORDER BY ReportAliasName, CompanyName;\r\n"
+	            	            		+ "";
+		               if( fetchDataFromDatabaseAndNavigate(sqlSelect) == true) {
+		            	   String query = "SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+		            	   		+ "            		FROM Staging.Reportprocess WHERE IsActive = 1  and (FilterValueInPW = 'Failed to load the page' or FilterValueInPW is Null)\r\n"
+		            	   		+ "            		ORDER BY ReportAliasName, CompanyName";
+		            	   int i=0;
+		            	   while(i<3) {
+		            		   fetchDataFromDatabaseAndNavigate(query) ; 
+		            		   i++;
+		            	   }
+		            		   try {
+			            		   if(SampleText.differenceInFilters()==true) {
+			            			   try {
+			       	            		if(!SampleText.output.toString().isEmpty()) {
+			       	            			SampleText.sendEmail(SampleText.output);
+			       		            		OpenJira.jiraTicketCreation(SampleText.output);
+			       	            		}
+			       	            		else {
+			       	            			stringBuilder.append("No differences in the filters");
+						            		SampleText.sendEmail(stringBuilder);
+			       	            			
+			       	            		}
+			       	            		
+			       	            	}
+			       	            	catch (Exception e) {
+			       	            		 e.printStackTrace();
+			       	     	            System.out.println("Error Sending Email/Jira Creation: " + e.getMessage());
+			       	            	}
+			            		   }
+			            		   else {
+			            			   stringBuilder.append("Unable to get the differences in the filters");
+					            		SampleText.sendEmail(stringBuilder);
+			            		   }
+			            	   }
+			            	   catch (Exception e) {
+			            		   stringBuilder.append("Unable to get the differences in the filters");
+				            		SampleText.sendEmail(stringBuilder);
+				            		 e.printStackTrace();
+				     	            System.out.println("Difference in filters fetching: " + e.getMessage());
+				            	}
+			               }
+		               
+	            	
+		               else {
+		            		stringBuilder.append("Error while fetching data");
+		            		SampleText.sendEmail(stringBuilder);
+		               } 
 	            	}
 	            	catch (Exception e) {
+	            		stringBuilder.append("Error while fetching data");
+	            		SampleText.sendEmail(stringBuilder);
 	            		 e.printStackTrace();
-	     	            System.out.println("Error Sending Email/Jira Creation: " + e.getMessage());
+	     	            System.out.println("Error occurred While fetching Data: " + e.getMessage());
 	            	}
-    		   }
-    		   else {
-    			   stringBuilder.append("Unable to get the differences in the filters");
-            		SampleText.sendEmail(stringBuilder);
-    		   }
-    	   }
-    	   catch (Exception e) {
-    		   stringBuilder.append("Unable to get the differences in the filters");
-        		SampleText.sendEmail(stringBuilder);
-        		 e.printStackTrace();
- 	            System.out.println("Difference in filters fetching: " + e.getMessage());
-        	}
-    }
-    
-    
-    public static String getFailedReason() {
-    		 return failedReasonThreadLocal.get();
+	            
+	            	
+	            	
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            System.out.println("An error occurred: " + e.getMessage());
+	        }
+	        finally {
+	        	driver.quit();
+	        }
+	       
+           
+	       
+	        
+	    }
+
+    public static void initializeBrowser() {
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--remote-allow-origins=*");
+        WebDriverManager.chromedriver().clearDriverCache().setup();
+        driver = new ChromeDriver(options);
+        actions = new Actions(driver);
+        driver.manage().window().maximize();
     }
 
-    public static void setFailedReason(String failedReason) {
-    	failedReasonThreadLocal.set(failedReason);
+    public static boolean signIn() {
+        try {
+            driver.get(AppConfig.URL);
+            driver.findElement(Locators.userName).sendKeys(AppConfig.username);
+            driver.findElement(Locators.password).sendKeys(AppConfig.password);
+            driver.findElement(Locators.signMeIn).click();
+            boolean unauthorizedPopupAppearts = false;
+            try {   unauthorizedPopupAppearts = driver.findElements(By.xpath("//*[@class='toast toast-error']")).size() > 0;}
+            catch (Exception e1) {}
+              if(unauthorizedPopupAppearts) {
+              	driver.findElement(By.xpath("//*[@class='toast-close-button']")).click();
+              	driver.findElement(Locators.userName).sendKeys(AppConfig.username);
+                  driver.findElement(Locators.password).sendKeys(AppConfig.password);
+                  driver.findElement(Locators.signMeIn).click();
+              	
+              }
+            return !isLoginErrorDisplayed();
+        } catch (Exception e) {
+            System.out.println("Login failed");
+            return false;
+        }
     }
-    
-        
+
+    public static boolean isLoginErrorDisplayed() {
+        try {
+            return driver.findElement(Locators.loginError).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static boolean fetchDataFromDatabaseAndNavigate(String sqlSelect) throws IOException {
-    	Connection conn = null;
-    	Statement stmt= null;
-	    ResultSet rs= null;
-	    final String CONNECTION_URL = "jdbc:sqlserver://azrsrv001.database.windows.net;databaseName=HomeRiverDB;user=service_sql02;password=xzqcoK7T;encrypt=true;trustServerCertificate=true;";
-    	try {
-        	
+        try {
             conn = DriverManager.getConnection(CONNECTION_URL);
            
+            		
+            
+            		
+            		/*"	SELECT ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+            		+ "	FROM Staging.Reportprocess \r\n"
+            		+ "	WHERE IsActive = 1 \r\n"
+            		+ "	  AND (FilterValidationThroughAutomation = 1 OR FilterValidationThroughAutomation IS NULL) \r\n"
+            		+ "	AND ReportAliasName = '*Incremental - General Ledger (Last Month)'\r\n"
+            		+ "	ORDER BY ReportAliasName, CompanyName;";*/
+
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             rs = stmt.executeQuery(sqlSelect);
-            int rows =0;
-            if (rs.last()) 
-            {
-            	rows = rs.getRow();
-            	// Move to beginning
-            	rs.beforeFirst();
+            List<String[]> resultSetData = new ArrayList<>();
+            resultSetData.clear();
+            rs.beforeFirst();
+            while (rs.next()) {
+                String[] rowData = {
+                        rs.getString("ReportID"),
+                        rs.getString("CompanyName"),
+                        rs.getString("ReportName"),
+                        rs.getString("ReportAliasName"),
+                        rs.getString("ReportURL")
+                };
+                resultSetData.add(rowData);
             }
-            System.out.println("No of Rows = "+rows);
-            RunnerClass2.pendingLeases = new String[rows][5];
-            
-            int  i=0;
-            while(rs.next())
-            {
-            	String 	ReportID =  rs.getObject(1).toString();
-            	String 	CompanyName =  (String) rs.getObject(2);
-                String  ReportName = rs.getObject(3).toString();
-                String ReportAliasName = rs.getObject(4).toString();
-                String ReportURL = rs.getObject(5).toString(); 
-                
-               
-    			//ID
-                try 
-                {
-    				RunnerClass2.pendingLeases[i][0] = ReportID;
+
+            for (String[] rowData : resultSetData) {
+                String reportID = rowData[0];
+                String companyName = rowData[1];
+                String reportName = rowData[2];
+                String reportAliasName = rowData[3];
+                String reportURL = rowData[4];
+                String number = extractNumberFromURL(reportURL);
+                String finalURL = "https://app.propertyware.com/pw/reporting/reports.do?entityID=" + number;
+
+                System.out.println("CompanyName: " + companyName);
+                System.out.println("ReportName: " + reportName);
+                System.out.println("ReportAliasName: " + reportAliasName);
+                System.out.println("ReportURL: " + reportURL);
+                System.out.println("Final URL with extracted number: " + finalURL);
+
+                try {
+                   if( navigateToURL(finalURL, companyName, reportName, reportAliasName, reportURL, reportID)==true) {
+                	   continue;
+                   }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
                 }
-                catch(Exception e)
-                {
-                	RunnerClass2.pendingLeases[i][0] = "";
-                }
-              //Company
-                try 
-                {
-    				RunnerClass2.pendingLeases[i][1] = CompanyName;
-                }
-                catch(Exception e)
-                {
-                	RunnerClass2.pendingLeases[i][1] = "";
-                }
-              //leaseEntityID
-                try 
-                {
-    				RunnerClass2.pendingLeases[i][2] = ReportName;
-                }
-                catch(Exception e)
-                {
-                	RunnerClass2.pendingLeases[i][2] = "";
-                }
-              //DataDifference between moveindate and today
-                try 
-                {
-    				RunnerClass2.pendingLeases[i][3] = ReportAliasName;
-                }
-                catch(Exception e)
-                {
-                	RunnerClass2.pendingLeases[i][3] = "";
-                }
-              //moveINDate
-                try 
-                {
-    				RunnerClass2.pendingLeases[i][4] = ReportURL;
-                }
-                catch(Exception e)
-                {
-                	RunnerClass2.pendingLeases[i][4] = "";
-                }
-              
-    				i++;
-            }	
-            System.out.println("Total Pending Leases  = " +RunnerClass2.pendingLeases.length);
-            rs.close();
-            stmt.close();
-            conn.close();
+
+                System.out.println("---------------------------------------------");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -306,8 +256,9 @@ public class RunnerClass2 {
             }
         }
 		return true;
-    }   
-    public static boolean navigateToURL(WebDriver driver,String finalURL, String companyName, String reportName, String reportAliasName, String reportURL, String reportID) throws InterruptedException {
+    }
+
+    public static boolean navigateToURL(String finalURL, String companyName, String reportName, String reportAliasName, String reportURL, String reportID) throws InterruptedException {
         try {
             driver.get(AppConfig.homeURL);
             switch (companyName) {
@@ -329,7 +280,19 @@ public class RunnerClass2 {
 
             try {
             	
-           
+            	try {
+					String expiredURL = RunnerClass3.driver.getCurrentUrl();
+					if(expiredURL.contains("https://app.propertyware.com/pw/expired.jsp") || expiredURL.equalsIgnoreCase("https://app.propertyware.com/pw/expired.jsp?cookie") || expiredURL.contains(AppConfig.URL) || expiredURL.contains("https://app.propertyware.com/pw/login.jsp?unauthorized=true")) {
+						
+						RunnerClass3.driver.navigate().to(AppConfig.URL);
+						RunnerClass3.driver.findElement(Locators.userName).sendKeys(AppConfig.username); 
+					    RunnerClass3.driver.findElement(Locators.password).sendKeys(AppConfig.password);
+					    Thread.sleep(2000);
+					    RunnerClass3.driver.findElement(Locators.signMeIn).click();
+					    Thread.sleep(3000);
+					}
+				}
+				catch(Exception e) {}
                 driver.findElement(Locators.marketDropdown).click();
                 String marketName = "HomeRiver Group - " + companyName;
                 Select marketDropdownList = new Select(driver.findElement(Locators.marketDropdown));
@@ -478,10 +441,11 @@ public class RunnerClass2 {
         }
 		return true;
     }
+
+
+
     private static void updateDatabase(String reportID, String extractedValues) {
-    	 try (Connection conn = DriverManager.getConnection(AppConfig.connectionUrl);
- 		        Statement stmt = conn.createStatement();) 
- 		    {
+        try {
             String sqlUpdate = "UPDATE Staging.ReportProcess SET FilterValueInPW = ?, FilterValidationThroughAutomation = 1 WHERE ReportID = ?";
             PreparedStatement pstmt = conn.prepareStatement(sqlUpdate);
             pstmt.setString(1, extractedValues);
@@ -492,7 +456,8 @@ public class RunnerClass2 {
         }
     }
 
-    
+
+
     private static String extractNumberFromURL(String url) {
         Pattern pattern = Pattern.compile("/(\\d+)/");
         Matcher matcher = pattern.matcher(url);
@@ -501,7 +466,24 @@ public class RunnerClass2 {
         }
         return null;
     }
-    public static void intermittentPopUp(WebDriver driver)
+
+    
+    public static void updateTable(String query)
+	 {
+		    try (Connection conn = DriverManager.getConnection(CONNECTION_URL);
+		        Statement stmt = conn.createStatement();) 
+		    {
+		      stmt.executeUpdate(query);
+		     System.out.println("Record Updated");
+		      stmt.close();
+	            conn.close();
+		    } catch (SQLException e) 
+		    {
+		      e.printStackTrace();
+		    }
+	 }
+   
+	public static void intermittentPopUp(WebDriver driver)
 	{
 		//Pop up after clicking lease name
 				try
@@ -576,15 +558,5 @@ public class RunnerClass2 {
 		                
 		            }
 				 }
-	
-    @DataProvider(name = "testData", parallel = true)
-    public Object[][] testData() {
-    	try {
-    		fetchDataFromDatabaseAndNavigate(AppConfig.pendingLeasesQuery);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        return pendingLeases;
-    }
-}
+	}
+
