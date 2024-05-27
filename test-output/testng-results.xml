@@ -1,21 +1,236 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testng-results ignored="0" total="0" passed="0" failed="0" skipped="0">
+<testng-results ignored="0" total="6" passed="5" failed="1" skipped="0">
   <reporter-output>
   </reporter-output>
-  <suite started-at="2024-05-24T11:56:37 IST" name="DataProviderSuite" finished-at="2024-05-24T11:56:39 IST" duration-ms="1745">
+  <suite started-at="2024-05-27T14:45:37 IST" name="Default suite" finished-at="2024-05-27T14:47:23 IST" duration-ms="105508">
     <groups>
     </groups>
-    <test started-at="2024-05-24T11:56:37 IST" name="DataProviderTest" finished-at="2024-05-24T11:56:39 IST" duration-ms="1745">
+    <test started-at="2024-05-27T14:45:37 IST" name="Default test" finished-at="2024-05-27T14:47:23 IST" duration-ms="105508">
       <class name="mainPackage.RunnerClass">
-        <test-method is-config="true" signature="DBChanges()[pri:0, instance:mainPackage.RunnerClass@74e52ef6]" started-at="2024-05-24T11:56:33 IST" name="DBChanges" finished-at="2024-05-24T11:56:37 IST" duration-ms="4457" status="PASS">
+        <test-method is-config="true" signature="DBChanges()[pri:0, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:34 IST" name="DBChanges" finished-at="2024-05-27T14:45:37 IST" duration-ms="3680" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- DBChanges -->
-        <test-method is-config="true" signature="executeCodeAfterSuite()[pri:0, instance:mainPackage.RunnerClass@74e52ef6]" started-at="2024-05-24T11:56:39 IST" name="executeCodeAfterSuite" finished-at="2024-05-24T11:56:45 IST" duration-ms="6174" status="PASS">
+        <test-method is-config="true" signature="setUp()[pri:0, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:39 IST" name="setUp" finished-at="2024-05-27T14:45:57 IST" duration-ms="17193" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="setUp()[pri:0, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:39 IST" name="setUp" finished-at="2024-05-27T14:45:55 IST" duration-ms="15899" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="setUp()[pri:0, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:39 IST" name="setUp" finished-at="2024-05-27T14:45:56 IST" duration-ms="16550" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="setUp()[pri:0, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:39 IST" name="setUp" finished-at="2024-05-27T14:45:57 IST" duration-ms="17360" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="setUp()[pri:0, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:39 IST" name="setUp" finished-at="2024-05-27T14:45:56 IST" duration-ms="17061" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="testMethod(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)[pri:1, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:55 IST" name="testMethod" data-provider="testData" finished-at="2024-05-27T14:47:17 IST" duration-ms="81421" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1784]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Florida]]>
+              </value>
+            </param>
+            <param index="2">
+              <value>
+                <![CDATA[510BTHAcctsReceivableCharges]]>
+              </value>
+            </param>
+            <param index="3">
+              <value>
+                <![CDATA[*510BTH - Accts. Receivable - Charges]]>
+              </value>
+            </param>
+            <param index="4">
+              <value>
+                <![CDATA[https://app.propertyware.com/pw/00a/3849650213/JSON?9WYIVhBqRjBZBfy&shardKey=346488832]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testMethod -->
+        <test-method signature="testMethod(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)[pri:1, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:56 IST" name="testMethod" data-provider="testData" finished-at="2024-05-27T14:47:17 IST" duration-ms="80655" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1781]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Columbia - St Louis]]>
+              </value>
+            </param>
+            <param index="2">
+              <value>
+                <![CDATA[510BTHAcctsReceivableCharges]]>
+              </value>
+            </param>
+            <param index="3">
+              <value>
+                <![CDATA[*510BTH - Accts. Receivable - Charges]]>
+              </value>
+            </param>
+            <param index="4">
+              <value>
+                <![CDATA[https://app.propertyware.com/pw/00a/3849650254/JSON?7ahVPUHRZwtJYHj&shardKey=615546881]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testMethod -->
+        <test-method signature="testMethod(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)[pri:1, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:56 IST" name="testMethod" data-provider="testData" finished-at="2024-05-27T14:47:18 IST" duration-ms="81774" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1782]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Dallas/Fort Worth]]>
+              </value>
+            </param>
+            <param index="2">
+              <value>
+                <![CDATA[510BTHAcctsReceivableCharges]]>
+              </value>
+            </param>
+            <param index="3">
+              <value>
+                <![CDATA[*510BTH - Accts. Receivable - Charges]]>
+              </value>
+            </param>
+            <param index="4">
+              <value>
+                <![CDATA[https://app.propertyware.com/pw/00a/3849650199/JSON?5LFnGgYEsdBSCtY&shardKey=54099968]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testMethod -->
+        <test-method signature="testMethod(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)[pri:1, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:57 IST" name="testMethod" data-provider="testData" finished-at="2024-05-27T14:47:17 IST" duration-ms="80216" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1785]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Georgia]]>
+              </value>
+            </param>
+            <param index="2">
+              <value>
+                <![CDATA[510BTHAcctsReceivableCharges]]>
+              </value>
+            </param>
+            <param index="3">
+              <value>
+                <![CDATA[*510BTH - Accts. Receivable - Charges]]>
+              </value>
+            </param>
+            <param index="4">
+              <value>
+                <![CDATA[https://app.propertyware.com/pw/00a/3849650205/JSON?6FiUUxqjWAaZNJS&shardKey=228720645]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testMethod -->
+        <test-method signature="testMethod(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)[pri:1, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:45:57 IST" name="testMethod" data-provider="testData" finished-at="2024-05-27T14:47:18 IST" duration-ms="81665" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1783]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[Delaware]]>
+              </value>
+            </param>
+            <param index="2">
+              <value>
+                <![CDATA[510BTHAcctsReceivableCharges]]>
+              </value>
+            </param>
+            <param index="3">
+              <value>
+                <![CDATA[*510BTH - Accts. Receivable - Charges]]>
+              </value>
+            </param>
+            <param index="4">
+              <value>
+                <![CDATA[https://app.propertyware.com/pw/00a/3849650223/JSON?9KjdocpqizLtrds&shardKey=544145410]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testMethod -->
+        <test-method signature="failedCasesRunMethod(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)[pri:2, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:47:23 IST" name="failedCasesRunMethod" data-provider="failedData" finished-at="2024-05-27T14:47:23 IST" duration-ms="0" status="FAIL">
+          <exception class="org.testng.TestNGException">
+            <message>
+              <![CDATA[
+Data Provider public java.lang.Object[][] mainPackage.RunnerClass.failedData() returned a null value]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.testng.TestNGException: 
+Data Provider public java.lang.Object[][] mainPackage.RunnerClass.failedData() returned a null value
+at org.testng.internal.invokers.MethodInvocationHelper.invokeDataProvider(MethodInvocationHelper.java:159)
+at org.testng.internal.Parameters.handleParameters(Parameters.java:803)
+at org.testng.internal.Parameters.handleParameters(Parameters.java:728)
+at org.testng.internal.invokers.ParameterHandler.handleParameters(ParameterHandler.java:72)
+at org.testng.internal.invokers.ParameterHandler.createParameters(ParameterHandler.java:51)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:924)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:194)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+at org.testng.TestRunner.privateRun(TestRunner.java:829)
+at org.testng.TestRunner.run(TestRunner.java:602)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:437)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:431)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:391)
+at org.testng.SuiteRunner.run(SuiteRunner.java:330)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1256)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1176)
+at org.testng.TestNG.runSuites(TestNG.java:1099)
+at org.testng.TestNG.run(TestNG.java:1067)
+at org.testng.remote.AbstractRemoteTestNG.run(AbstractRemoteTestNG.java:115)
+at org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:251)
+at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:77)
+]]>
+            </full-stacktrace>
+          </exception> <!-- org.testng.TestNGException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- failedCasesRunMethod -->
+        <test-method is-config="true" signature="executeCodeAfterSuite()[pri:0, instance:mainPackage.RunnerClass@15de0b3c]" started-at="2024-05-27T14:47:23 IST" name="executeCodeAfterSuite" finished-at="2024-05-27T14:47:30 IST" duration-ms="6790" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- executeCodeAfterSuite -->
       </class> <!-- mainPackage.RunnerClass -->
-    </test> <!-- DataProviderTest -->
-  </suite> <!-- DataProviderSuite -->
+    </test> <!-- Default test -->
+  </suite> <!-- Default suite -->
 </testng-results>

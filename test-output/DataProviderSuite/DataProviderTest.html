@@ -55,11 +55,11 @@ function toggleAllBoxes() {
 <body>
 <h2 align='center'>DataProviderTest</h2><table border='1' align="center">
 <tr>
-<td>Tests passed/Failed/Skipped:</td><td>0/0/0</td>
+<td>Tests passed/Failed/Skipped:</td><td>5/1/0</td>
 </tr><tr>
-<td>Started on:</td><td>Fri May 24 11:56:37 IST 2024</td>
+<td>Started on:</td><td>Mon May 27 14:39:00 IST 2024</td>
 </tr>
-<tr><td>Total time:</td><td>1 seconds (1745 ms)</td>
+<tr><td>Total time:</td><td>108 seconds (108662 ms)</td>
 </tr><tr>
 <td>Included groups:</td><td></td>
 </tr><tr>
@@ -67,5 +67,82 @@ function toggleAllBoxes() {
 </tr>
 </table><p/>
 <small><i>(Hover the method name to see the test class name)</i></small><p/>
+<table width='100%' border='1' class='invocation-failed'>
+<tr><td colspan='4' align='center'><b>FAILED TESTS</b></td></tr>
+<tr><td><b>Test method</b></td>
+<td><b>Attribute(s)</b></td>
+<td width="30%"><b>Exception</b></td>
+<td width="10%"><b>Time (seconds)</b></td>
+<td><b>Instance</b></td>
+</tr>
+<tr>
+<td title='mainPackage.RunnerClass.failedCasesRunMethod()'><b>failedCasesRunMethod</b><br>Test class: mainPackage.RunnerClass</td>
+<td><div><pre>org.testng.TestNGException: 
+Data Provider public java.lang.Object[][] mainPackage.RunnerClass.failedData() returned a null value
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1589)
+... Removed 14 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace1954247667", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace1954247667'><pre>org.testng.TestNGException: 
+Data Provider public java.lang.Object[][] mainPackage.RunnerClass.failedData() returned a null value
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeDataProvider(MethodInvocationHelper.java:159)
+	at org.testng.internal.Parameters.handleParameters(Parameters.java:803)
+	at org.testng.internal.Parameters.handleParameters(Parameters.java:728)
+	at org.testng.internal.invokers.ParameterHandler.handleParameters(ParameterHandler.java:72)
+	at org.testng.internal.invokers.ParameterHandler.createParameters(ParameterHandler.java:51)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:924)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:194)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.testng.TestRunner.privateRun(TestRunner.java:829)
+	at org.testng.TestRunner.run(TestRunner.java:602)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:437)
+	at org.testng.SuiteRunner$SuiteWorker.run(SuiteRunner.java:475)
+	at org.testng.internal.thread.ThreadUtil.lambda$execute$0(ThreadUtil.java:58)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1589)
+</pre></div></td>
+<td>0</td>
+<td>mainPackage.RunnerClass@1a677343</td></tr>
+</table><p>
+<table width='100%' border='1' class='invocation-passed'>
+<tr><td colspan='4' align='center'><b>PASSED TESTS</b></td></tr>
+<tr><td><b>Test method</b></td>
+<td><b>Attribute(s)</b></td>
+<td width="30%"><b>Exception</b></td>
+<td width="10%"><b>Time (seconds)</b></td>
+<td><b>Instance</b></td>
+</tr>
+<tr>
+<td title='mainPackage.RunnerClass.testMethod()'><b>testMethod</b><br>Test class: mainPackage.RunnerClass<br>Parameters: 1776, California, 510BTHAcctsReceivableCharges, *510BTH - Accts. Receivable - Charges, https://app.propertyware.com/pw/00a/3849650236/JSON?5hMXqLjlxzoYkEm&shardKey=567246849</td>
+<td></td>
+<td>77</td>
+<td>mainPackage.RunnerClass@1a677343</td></tr>
+<tr>
+<td title='mainPackage.RunnerClass.testMethod()'><b>testMethod</b><br>Test class: mainPackage.RunnerClass<br>Parameters: 1779, Chicago, 510BTHAcctsReceivableCharges, *510BTH - Accts. Receivable - Charges, https://app.propertyware.com/pw/00a/3849650241/JSON?6FwqlFHGeVmlYyx&shardKey=584548352</td>
+<td></td>
+<td>79</td>
+<td>mainPackage.RunnerClass@1a677343</td></tr>
+<tr>
+<td title='mainPackage.RunnerClass.testMethod()'><b>testMethod</b><br>Test class: mainPackage.RunnerClass<br>Parameters: 1778, Chattanooga, 510BTHAcctsReceivableCharges, *510BTH - Accts. Receivable - Charges, https://app.propertyware.com/pw/00a/3849650249/JSON?3JfKByscoRIRPgq&shardKey=608436224</td>
+<td></td>
+<td>77</td>
+<td>mainPackage.RunnerClass@1a677343</td></tr>
+<tr>
+<td title='mainPackage.RunnerClass.testMethod()'><b>testMethod</b><br>Test class: mainPackage.RunnerClass<br>Parameters: 1777, California PFW, 510BTHAcctsReceivableCharges, *510BTH - Accts. Receivable - Charges, https://app.propertyware.com/pw/00a/3849650225/JSON?5jKrLyIclValUsw&shardKey=545357824</td>
+<td></td>
+<td>77</td>
+<td>mainPackage.RunnerClass@1a677343</td></tr>
+<tr>
+<td title='mainPackage.RunnerClass.testMethod()'><b>testMethod</b><br>Test class: mainPackage.RunnerClass<br>Parameters: 1780, Colorado Springs, 510BTHAcctsReceivableCharges, *510BTH - Accts. Receivable - Charges, https://app.propertyware.com/pw/00a/3849650251/JSON?1bWWRcHTGNEXVlW&shardKey=611287040</td>
+<td></td>
+<td>76</td>
+<td>mainPackage.RunnerClass@1a677343</td></tr>
+</table><p>
 </body>
 </html>

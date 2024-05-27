@@ -112,8 +112,8 @@ public class SampleText {
         String smtpHost = "smtp.office365.com";
         String smtpPort = "587";
         String emailFrom = "gopi.v@beetlerim.com";
-       // String emailTo = "gopi.v@beetlerim.com,naveen.p@beetlerim.com";
-        String emailTo = "naveen.p@beetlerim.com, gopi.v@beetlerim.com , ratna@beetlerim.com , dahoffman@homeriver.com ";
+       String emailTo = "gopi.v@beetlerim.com,naveen.p@beetlerim.com";
+       // String emailTo = "naveen.p@beetlerim.com, gopi.v@beetlerim.com , ratna@beetlerim.com , dahoffman@homeriver.com ";
         String emailSubject = "PropertyWare Report Filter Validation - "+startDateString;
         String emailBody = output2.toString();
 

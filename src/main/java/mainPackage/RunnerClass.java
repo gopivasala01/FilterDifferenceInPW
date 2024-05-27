@@ -41,6 +41,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 public class RunnerClass {
 	
     public static String[][] pendingLeases;
+    public static String[][] failedLeases;
 	public static WebDriverWait wait;
 	public static boolean loggedOut = false;
     
@@ -120,7 +121,7 @@ public class RunnerClass {
         
     }
 
-    @Test(dataProvider = "testData")
+    @Test(priority=1,dataProvider = "testData")
     public void testMethod(String reportID,String companyName, String reportName, String reportAliasName, String reportURL) throws Exception {
     	
     	String failedReason="";
@@ -163,9 +164,55 @@ public class RunnerClass {
 		
     }
 
+    @Test(priority=2,dataProvider = "failedData")
+    public void failedCasesRunMethod(String reportID,String companyName, String reportName, String reportAliasName, String reportURL) throws Exception {
+    	
+    	String failedReason="";
+    	
+    	System.out.println("Failed Cases <-------- "+companyName+" ------- "+reportName+" -------->");
+    	// Retrieve the thread-specific ChromeDriver instance from ThreadLocal
+        ChromeDriver driver = driverThreadLocal.get();
+    
+		try {
+			String expiredURL = driver.getCurrentUrl();
+			if(expiredURL.contains("https://app.propertyware.com/pw/expired.jsp") || expiredURL.equalsIgnoreCase("https://app.propertyware.com/pw/expired.jsp?cookie") || expiredURL.contains(AppConfig.URL)) {
+				loggedOut = true;
+				driver.navigate().to(AppConfig.URL);
+				driver.findElement(Locators.userName).sendKeys(AppConfig.username); 
+				driver.findElement(Locators.password).sendKeys(AppConfig.password);
+			    Thread.sleep(2000);
+			    driver.findElement(Locators.signMeIn).click();
+			    Thread.sleep(3000);
+			}
+		}
+		catch(Exception e) {}
+		try {
+			String number = extractNumberFromURL(reportURL);
+	    	String finalURL = "https://app.propertyware.com/pw/reporting/reports.do?entityID=" + number;
+	    	 try {
+	             if( navigateToURL(driver,finalURL, companyName, reportName, reportAliasName, reportURL, reportID)==true) {
+	      		   
+	             }
+	          } catch (Exception e) {
+	              e.printStackTrace();
+	          }
+	          System.out.println("---------------------------------------------");
+		}
+		catch(Exception e) {}
+		
+		finally {
+			setFailedReason(null);
+			driver.quit();
+		}
+		
+    }
+    
+    
     
     @AfterSuite
     public void executeCodeAfterSuite() {
+    	
+    	
     	StringBuilder stringBuilder = new StringBuilder();
     	
     	   try {
@@ -565,7 +612,7 @@ public class RunnerClass {
 		            }
 				 }
 	
-    @Test
+
 	@DataProvider(name = "testData", parallel = true)
     public Object[][] testData() {
     	try {
@@ -576,4 +623,18 @@ public class RunnerClass {
 		}
         return pendingLeases;
     }
+	
+	@DataProvider(name = "failedData", parallel = true)
+    public Object[][] failedData() {
+    	try {
+    		fetchDataFromDatabaseAndNavigate(AppConfig.failedLeasesQuery);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	 
+        return pendingLeases;
+    }
+    
+    
 }

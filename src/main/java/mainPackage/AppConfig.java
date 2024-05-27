@@ -26,6 +26,14 @@ public class AppConfig {
            		+ "	ORDER BY ReportAliasName, CompanyName;\r\n"
            		+ "";
 
+	   
+	   
+	   public static String failedLeasesQuery = "SELECT  ReportID, CompanyName, ReportName, ReportAliasName, ReportURL , FilterValidationThroughAutomation, FilterValueInPW\r\n"
+	   		+ "	FROM Staging.Reportprocess WHERE IsActive = 1  and (FilterValueInPW = 'Failed to load the page' or FilterValueInPW is Null) AND ReportAliasName <>'*Incremental - General Ledger (Last Month)' \r\n"
+	   		+ "AND ReportAliasName <> '*Incremental - General Ledger (Current Month)' \r\n"
+	   		+ "	ORDER BY ReportAliasName, CompanyName";
+	   
+	   
 	  // public static final List<String> companies = Arrays.asList("Chicago pfw" ,"Triad");
 	  public static final List<String> companies = Arrays.asList(
 		        "Alabama",
