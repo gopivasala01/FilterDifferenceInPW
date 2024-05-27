@@ -157,7 +157,6 @@ public class RunnerClass {
 		catch(Exception e) {}
 		
 		finally {
-			
 			setFailedReason(null);
 			driver.quit();
 		}
@@ -378,40 +377,8 @@ public class RunnerClass {
         	String dropdownText1 = "Failed to load the page";
             updateDatabase(reportID, dropdownText1);
             e.printStackTrace();
-            // Handle any exceptions or errors
-            driver.quit();
-            ChromeOptions options = new ChromeOptions();
-            options.addArguments("--remote-allow-origins=*");
-            options.addArguments("--incognito"); // Open Chrome in incognito mode
-            WebDriverManager.chromedriver().clearDriverCache().setup();
-            driver = new ChromeDriver(options);
-            options.setPageLoadStrategy(PageLoadStrategy.NORMAL); // Or PageLoadStrategy.EAGER if needed
-            options.setPageLoadTimeout(Duration.ofSeconds(500));
-
-            driver.manage().window().maximize();
-            driver.get(AppConfig.URL);
-            driver.findElement(Locators.userName).sendKeys(AppConfig.username);
-            Thread.sleep(1000);
-            driver.findElement(Locators.password).sendKeys(AppConfig.password);
-            Thread.sleep(1000);
-            driver.findElement(Locators.signMeIn).click();
-            Thread.sleep(1000);
-            boolean unauthorizedPopupAppearts = false;
-          try {   unauthorizedPopupAppearts = driver.findElements(By.xpath("//*[@class='toast toast-error']")).size() > 0;}
-          catch (Exception e1) {}
-            if(unauthorizedPopupAppearts) {
-            	Thread.sleep(1000);
-            	driver.findElement(By.xpath("//*[@class='toast-close-button']")).click();
-            	Thread.sleep(1000);
-            	driver.findElement(Locators.userName).sendKeys(AppConfig.username);
-            	Thread.sleep(1000);
-                driver.findElement(Locators.password).sendKeys(AppConfig.password);
-                Thread.sleep(1000);
-                driver.findElement(Locators.signMeIn).click();
-                Thread.sleep(1000);
-            	
             }
-        }
+        
 		return true;
     }
     public static boolean extractTextAndInputValuesFromPopup(WebDriver driver, String reportID) {
