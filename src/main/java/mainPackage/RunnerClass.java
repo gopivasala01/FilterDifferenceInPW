@@ -1,5 +1,7 @@
 package mainPackage;
 
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -30,10 +32,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
@@ -598,7 +598,8 @@ public class RunnerClass {
 		            }
 				 }
 	
-    @DataProvider(name = "testData", parallel = true)
+    @Test
+	@DataProvider(name = "testData", parallel = true)
     public Object[][] testData() {
     	try {
     		fetchDataFromDatabaseAndNavigate(AppConfig.pendingLeasesQuery);

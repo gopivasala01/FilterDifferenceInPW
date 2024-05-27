@@ -106,7 +106,7 @@ public class SampleText {
     public static void sendEmail(StringBuilder output2) {
     	
     	 LocalDate currentDate = LocalDate.now();
-    	  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/DD/YYYY");
+    	  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
           String startDateString = currentDate.format(formatter);
         // Email configuration
         String smtpHost = "smtp.office365.com";
